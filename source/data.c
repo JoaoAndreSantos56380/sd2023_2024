@@ -35,6 +35,7 @@ int data_destroy(struct data_t* data){
 			free(data->data);
 		}
 		free(data);
+		return 0; //adicionei porque provavelmente esqueceste de adicionar.
 	}
 	return -1;
 }
