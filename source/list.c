@@ -193,6 +193,7 @@ int list_size(struct list_t* list){
  * Retorna o array de strings ou NULL em caso de erro.
  */
 char** list_get_keys(struct list_t* list){
+	// TODO E SUPOSTO O PONTEIRO ANDAR PARA A FRENTE? SE SIM COMO?
 	char** keys = malloc((list->size + 1) * sizeof(char*));
 	struct node_t* node = list->head;
 	int index = 0;
