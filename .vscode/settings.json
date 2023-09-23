@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "list-private.h": "c",
+        "table-private.h": "c",
+        "data.h": "c",
+        "stdio.h": "c",
+        "data-private.h": "c"
+    }
+}
