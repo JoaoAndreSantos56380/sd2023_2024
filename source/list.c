@@ -223,12 +223,21 @@ char** list_get_keys(struct list_t* list) {
  * Retorna 0 (OK) ou -1 em caso de erro.
  */
 int list_free_keys(char** keys) {
-	// TODO como ver os erros aqui????
+	if(keys == NULL) {
+		return -1;
+	}
+
 	int rows = (sizeof(keys) / sizeof(*keys));
 	for (int i = 0; i < rows; i++) {
 		free(keys[i]);
+		if (keys[i] == NULL) {
+			return -1; // Falha ao libertar memória!!
+		}
 	}
 	free(keys);
+	if (keys == NULL) {
+		return -1; // Falha ao libertar memória!!
+	}
 
 	return 0;
 }

@@ -160,14 +160,20 @@ void test_list_size() {
 
 /**************************************************************/
 /*
- * Testa a função que devolve uma cópia de todas as keys na 
- * lista. Se este teste for efetuado com sucesso, o programa 
- * imprime "passou!".
+ * Testa:
+ * - A função get_keys que devolve uma cópia de todas as keys 
+ * na lista.
+ * - A função free_keys que liberta a memória ocupada pelo 
+ * array de keys obtido pela função list_get_keys.
+ * 
+ * Se este teste for efetuado com sucesso, o programa imprime 
+ * "passou!".
  */
-void test_list_get_keys() {
+void test_list_keys() {
     struct list_t* good_list = list_create();
     struct list_t* bad_list;
 
+    //testar o get_keys
     assert(list_get_keys(bad_list) == NULL);
     char** result1 = list_get_keys(good_list);
     assert((sizeof(result1) / sizeof(result1[0])) == 0); //0 keys
@@ -182,23 +188,32 @@ void test_list_get_keys() {
 
     char** result2 = list_get_keys(good_list);
     assert((sizeof(result2) / sizeof(result2[0])) == 2); //2 keys
-}
 
-/**************************************************************/
-/*
- * Testa a função que liberta a memória ocupada pelo array de 
- * keys obtido pela função list_get_keys. Se este teste for 
- * efetuado com sucesso, o programa imprime "passou!".
- */
-void test_list_free_keys() {
-    struct list_t* good_list = list_create();
-    struct list_t* bad_list;
+    //testar o free_keys
+    assert(list_free_keys(result1) == 0);
+    assert(list_free_keys(result2) == 0);
 
-    //TODO
+    char** dont_exist;
+    assert(list_free_keys(dont_exist) == -1);
+
+    printf("test_list_keys: passou!");
 }
 
 /**************************************************************/
 int main() {
-
+    test_list_create();
+	printf("\n");
+    test_list_add();
+    printf("\n");
+    test_list_remove();
+    printf("\n");
+    test_list_destroy();
+    printf("\n");
+    test_list_get();
+    printf("\n");
+    test_list_size();
+    printf("\n");
+    test_list_keys();
+    printf("\n");
     return 0;
 }
