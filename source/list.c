@@ -141,6 +141,9 @@ int list_add(struct list_t* list, struct entry_t* entry) {
  * ou -1 em caso de erro.
  */
 int list_remove(struct list_t* list, char* key) {
+	if(valid_list(list) == -1) {
+		return -1;
+	}
 	// quando e a cabeca
 	// guardar referencia do next e libertar memoria do no atual e colocar como cabeca o next/temp
 
