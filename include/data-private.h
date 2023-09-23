@@ -1,4 +1,4 @@
-#ifdef _DATA_PRIVATE_H
+#ifndef _DATA_PRIVATE_H
 #define _DATA_PRIVATE_H
 
 /* Função que valida um bloco de dados.
