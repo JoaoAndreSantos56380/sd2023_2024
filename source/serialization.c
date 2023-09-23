@@ -10,8 +10,8 @@
  * Retorna o tamanho do buffer alocado ou -1 em caso de erro.
  */
 int keyArray_to_buffer(char** keys, char** keys_buf){
-    // Verificar se o array de keys é válido.
-    if(keys == NULL) {
+    // Verificar se o array de keys é válido. Dúvida: o keys_buf é suposto ser NULL ao início?
+    if(keys == NULL || keys_buf != NULL) {
         return -1;
     }
 
