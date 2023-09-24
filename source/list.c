@@ -1,7 +1,8 @@
-#include "list.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "entry-private.h"
+#include "list.h"
 #include "entry.h"
 #include "list-private.h"
 
@@ -141,6 +142,9 @@ int list_add(struct list_t* list, struct entry_t* entry) {
  * ou -1 em caso de erro.
  */
 int list_remove(struct list_t* list, char* key) {
+	if (valid_list(list) == -1) {
+		return -1;
+	}
 	// quando e a cabeca
 	// guardar referencia do next e libertar memoria do no atual e colocar como cabeca o next/temp
 
@@ -176,9 +180,9 @@ int list_remove(struct list_t* list, char* key) {
  */
 struct entry_t* list_get(struct list_t* list, char* key) {
 	struct node_t* node = list->head;
-	struct entry_t* entry = NULL;
-	while (node->next != NULL) {
-		if (strcmp(node->entry->key) == 0) {
+	// struct entry_t* entry = NULL;
+	while (node/* ->next */ != NULL) {
+		if (strcmp(node->entry->key, key) == 0) {
 			// entry = node->entry;
 			// return entry;
 			return node->entry;
@@ -207,12 +211,13 @@ char** list_get_keys(struct list_t* list) {
 	int index = 0;
 	while (node->next != NULL) {
 		keys[index] = malloc(strlen(node->entry->key) + 1);
-		memcpy(keys[index], node->entry->key);
+		memcpy(keys[index], node->entry->key, strlen(node->entry->key)+1);
 		keys[index][strlen(node->entry->key)] = '\0';
 		index++;
 		node = node->next;
 	}
 	keys[list->size] = NULL;
+	return keys;
 }
 
 /* Função que liberta a memória ocupada pelo array de keys obtido pela
@@ -220,12 +225,20 @@ char** list_get_keys(struct list_t* list) {
  * Retorna 0 (OK) ou -1 em caso de erro.
  */
 int list_free_keys(char** keys) {
-	// TODO como ver os erros aqui????
-	int rows = (sizeof(keys) / sizeof(*keys));
+	if (keys == NULL) {
+		return -1;
+	}
+	int rows = (sizeof(keys) / 8);
 	for (int i = 0; i < rows; i++) {
 		free(keys[i]);
+		if (keys[i] == NULL) {
+			return -1;	// Falha ao libertar memória!!
+		}
 	}
 	free(keys);
+	if (keys == NULL) {
+		return -1;	// Falha ao libertar memória!!
+	}
 
 	return 0;
 }
@@ -248,4 +261,8 @@ int valid_list(struct list_t* list) {
 		current = next;
 	}
 	return 0;
+}
+
+void print_list(){
+
 }
