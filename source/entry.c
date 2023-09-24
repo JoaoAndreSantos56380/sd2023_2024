@@ -1,7 +1,9 @@
-#include <entry.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include "entry.h"
 #include "data-private.h"
+#include "entry-private.h"
 #include "data.h"
 
 struct entry_t* entry_create(char* key, struct data_t* data) {
