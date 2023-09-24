@@ -15,27 +15,29 @@ CC = gcc
 
 CFLAGS = -Wall -g -I $(INC_DIR)
 
-EXECS = $(BIN_DIR)/test_data #test_entry test_list test_serialization test_table
+EXECS = $(BIN_DIR)/test_data $(BIN_DIR)/test_entry $(BIN_DIR)/test_list #$(BIN_DIR)/test_table $(BIN_DIR)/test_serialization
 
 make: $(EXECS)
 
 run:
 	$(BIN_DIR)/test_data
+	$(BIN_DIR)/test_entry
+	$(BIN_DIR)/test_list
 
 $(BIN_DIR)/test_data: $(OBJ_DIR)/test_data.o $(OBJ_DIR)/data.o
 	$(CC) $^ -o $@
 
-#$(BIN_DIR)/test_entry: $(OBJ_DIR)/test_entry.o $(OBJ_DIR)/entry.o
-#	$(CC) $^ -o $@
+$(BIN_DIR)/test_entry: $(OBJ_DIR)/test_entry.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/data.o
+	$(CC) $^ -o $@
 
-#$(BIN_DIR)/test_list: $(OBJ_DIR)/test_list.o $(OBJ_DIR)/list.o
-#	$(CC) $^ -o $@
+$(BIN_DIR)/test_list: $(OBJ_DIR)/test_list.o $(OBJ_DIR)/list.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/data.o
+	$(CC) $^ -o $@
 
 #$(BIN_DIR)/test_serialization: $(OBJ_DIR)/test_serialization.o $(OBJ_DIR)/serialization.o
 #	$(CC) $^ -o $@
 
-#$(BIN_DIR)/test_table: $(OBJ_DIR)/test_table.o $(OBJ_DIR)/table.o
-#	$(CC) $^ -o $@
+$(BIN_DIR)/test_table: $(OBJ_DIR)/test_table.o $(OBJ_DIR)/table.o $(OBJ_DIR)/list.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/data.o
+	$(CC) $^ -o $@
 
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
