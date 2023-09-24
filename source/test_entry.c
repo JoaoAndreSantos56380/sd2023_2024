@@ -1,137 +1,211 @@
+#include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "data.h"
 #include "entry.h"
 
 /**************************************************************/
+void pee(const char* msg) {
+	perror(msg);
+	exit(0);
+}
+
+/**************************************************************/
 int testCreate() {
+	int result;
 	char* key = strdup("123abc");
-	struct data_t* value = data_create2(strlen("1234567890abc") + 1, strdup("1234567890abc"));
+	struct data_t* value = data_create(4, strdup("1234"));
+	struct entry_t* entry;
 
-	struct entry_t* entry = entry_create(key, value);
+	printf("Módulo entry -> testCreate: ");
+	fflush(stdout);
 
-	int result = (entry->key == key) &&
-					 (entry->value == value);
+	assert(entry_create(NULL, value) == NULL);
+	result = (entry_create(NULL, value) == NULL);
 
-	entry_destroy(entry);
+	assert(entry_create(key, NULL) == NULL);
+	result = result && (entry_create(key, NULL) == NULL);
 
-	printf("entry - testCreate: %s\n", result ? "passou" : "não passou");
+	if ((entry = entry_create(key, value)) == NULL)
+		pee("  entry_create retornou NULL - O teste não pode prosseguir");
+
+	result = result && (entry->key == key) && (entry->value == value);
+
+	free(entry->key);
+	data_destroy(entry->value);
+	free(entry);
+
+	printf("%s\n", result ? "passou" : "não passou");
 	return result;
 }
 
 /**************************************************************/
+int testDestroy() {
+	int result;
+	struct entry_t* entry;
 
+	printf("Módulo entry -> testDestroy: ");
+	fflush(stdout);
+
+	assert(entry_destroy(NULL) == -1);
+	result = (entry_destroy(NULL) == -1);
+
+	entry = (struct entry_t*)malloc(sizeof(struct entry_t));
+
+	entry->key = NULL;
+	entry->value = NULL;
+	assert(entry_destroy(entry) == -1);
+	result = result && (entry_destroy(entry) == -1);
+
+	entry->key = strdup("abc");
+	assert(entry_destroy(entry) == -1);
+	result = result && (entry_destroy(entry) == -1);
+	free(entry->key);
+	entry->key = NULL;
+
+	entry->value = data_create(4, strdup("1234"));
+	assert(entry_destroy(entry) == -1);
+	result = result && (entry_destroy(entry) == -1);
+	data_destroy(entry->value);
+
+	free(entry);
+
+	if ((entry = entry_create(strdup("abc"), data_create(4, strdup("1234")))) == NULL)
+		pee("  entry_create retornou NULL - O teste não pode prosseguir");
+
+	result = result && (entry_destroy(entry) == 0);
+
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
+}
+
+/**************************************************************/
 int testDup() {
 	int result;
-	char* key = strdup("123abc");
-	struct data_t* value = data_create2(strlen("1234567890abc") + 1, strdup("1234567890abc"));
+	char* key = strdup("abc");
+	struct data_t* value = data_create(4, strdup("1234"));
+	struct entry_t* entry;
+	struct entry_t* entry2;
 
-	struct entry_t* entry = entry_create(key, value);
+	printf("Módulo entry -> testDup: ");
+	fflush(stdout);
 
-	struct entry_t* entry2 = entry_dup(entry);
+	assert(entry_dup(NULL) == NULL);
+	result = (entry_dup(NULL) == NULL);
 
-	result = entry2 != entry;
+	if ((entry = entry_create(key, value)) == NULL)
+		pee("  entry_create retornou NULL - O teste não pode prosseguir");
 
-	result = result && (entry->key != entry2->key) &&
-				(strcmp(entry->key, entry2->key) == 0) &&
-				(entry->value != entry2->value) &&
-				(entry->value->datasize == entry2->value->datasize) &&
-				(memcmp(entry->value->data, entry2->value->data, entry->value->datasize) == 0);
+	if ((entry2 = entry_dup(entry)) == NULL)
+		pee("  entry_dup retornou NULL - O teste não pode prosseguir");
+
+	result = result && entry2 != entry && (entry->key != entry2->key) && (strcmp(entry->key, entry2->key) == 0) && (entry->value != entry2->value) && (entry->value->datasize == entry2->value->datasize) && (memcmp(entry->value->data, entry2->value->data, entry->value->datasize) == 0);
 
 	entry_destroy(entry);
 	entry_destroy(entry2);
 
-	printf("entry - testDup: %s\n", result ? "passou" : "não passou");
+	printf("%s\n", result ? "passou" : "não passou");
 	return result;
 }
 
 /**************************************************************/
-
-int testDestroy() {
-	printf("Módulo entry -> teste entry_destroy:");
-	entry_destroy(NULL);
-	printf(" passou\n");
-	return 1;
-}
-
-/**************************************************************/
-
 int testReplace() {
 	int result;
-	char* key = strdup("123abc");
-	char* new_key = strdup("123abc456");
-	struct data_t* value = data_create2(strlen("1234567890abc") + 1, strdup("1234567890abc"));
-	struct data_t* new_value = data_create2(strlen("123456abc") + 1, strdup("123456abc"));
+	char* key = strdup("abc");
+	char* key2 = strdup("abc2");
+	struct data_t* value = data_create(4, strdup("1234"));
+	struct data_t* value2 = data_create(5, strdup("56789"));
+	struct entry_t* entry;
 
-	struct entry_t* entry = entry_create(key, value);
+	printf("Módulo entry -> testReplace: ");
+	fflush(stdout);
 
-	entry_replace(entry, new_key, new_value);
+	assert(entry_replace(NULL, NULL, NULL) == -1);
+	result = (entry_replace(NULL, NULL, NULL) == -1);
 
-	result = (entry->key == new_key) && (strcmp(entry->key, new_key) == 0);
+	assert(entry_replace(NULL, key2, value2) == -1);
+	result = result && (entry_replace(NULL, key2, value2) == -1);
 
-	result = result && (entry->value == new_value);
+	if ((entry = entry_create(key, value)) == NULL)
+		pee("  entry_create retornou NULL - O teste não pode prosseguir");
+
+	assert(entry_replace(entry, NULL, NULL) == -1);
+	result = result && (entry_replace(entry, NULL, NULL) == -1);
+
+	assert(entry_replace(entry, key2, NULL) == -1);
+	result = result && (entry_replace(entry, key2, NULL) == -1);
+
+	assert(entry_replace(entry, NULL, value2) == -1);
+	result = result && (entry_replace(entry, NULL, value2) == -1);
+
+	if ((entry_replace(entry, key2, value2)) == -1)
+		pee("  entry_replace retornou -1 - O teste não pode prosseguir");
+
+	result = result && (entry->key == key2) && (entry->value == value2);
 
 	entry_destroy(entry);
 
-	printf("entry - testReplace: %s\n", result ? "passou" : "não passou");
+	printf("%s\n", result ? "passou" : "não passou");
 	return result;
 }
 
 /**************************************************************/
-
 int testCompare() {
 	int result;
-	char* key1 = strdup("a");
-	char* key2 = strdup("b");
-	char* key3 = strdup("f");
-	char* key4 = strdup("a");
-	struct data_t* value1 = data_create2(strlen("1234567890abc") + 1, strdup("1234567890abc"));
-	struct data_t* value2 = data_create2(strlen("1234567890abc") + 1, strdup("1234567890abc"));
-	struct data_t* value3 = data_create2(strlen("sabc") + 1, strdup("sabc"));
-	struct data_t* value4 = data_create2(strlen("abc") + 1, strdup("abc"));
+	char* key = strdup("aaa");
+	char* key2 = strdup("bbb");
+	struct data_t* value = data_create(4, strdup("1234"));
+	struct data_t* value2 = data_create(5, strdup("56789"));
+	struct entry_t* entry;
+	struct entry_t* entry2;
 
-	struct entry_t* entry1 = entry_create(key1, value1);
-	struct entry_t* entry2 = entry_create(key2, value2);
-	struct entry_t* entry3 = entry_create(key3, value3);
-	struct entry_t* entry4 = entry_create(key4, value4);
+	printf("Módulo entry -> testCompare: ");
+	fflush(stdout);
 
-	result = (entry_compare(entry1, entry2) == -1);
-	result = result && (entry_compare(entry4, entry2) == -1);
-	result = result && (entry_compare(entry2, entry1) == 1);
-	result = result && (entry_compare(entry3, entry1) == 1);
-	result = result && (entry_compare(entry3, entry2) == 1);
-	result = result && (entry_compare(entry2, entry3) == -1);
-	result = result && (entry_compare(entry1, entry4) == 0);
-	result = result && (entry_compare(entry4, entry1) == 0);
+	assert(entry_compare(NULL, NULL) == -2);
+	result = (entry_compare(NULL, NULL) == -2);
 
-	entry_destroy(entry1);
+	if ((entry = entry_create(key, value)) == NULL)
+		pee("  entry_create(key) retornou NULL - O teste não pode prosseguir");
+
+	if ((entry2 = entry_create(key2, value2)) == NULL)
+		pee("  entry_create(key2) retornou NULL - O teste não pode prosseguir");
+
+	assert(entry_compare(entry, NULL) == -2);
+	result = result && (entry_compare(entry, NULL) == -2);
+
+	assert(entry_compare(NULL, entry) == -2);
+	result = result && (entry_compare(NULL, entry) == -2);
+
+	result = result && (entry_compare(entry, entry) == 0) && (entry_compare(entry, entry2) == -1) && (entry_compare(entry2, entry) == 1);
+
+	entry_destroy(entry);
 	entry_destroy(entry2);
-	entry_destroy(entry3);
-	entry_destroy(entry4);
 
-	printf("entry - testCompare: %s\n", result ? "passou" : "não passou");
+	printf("%s\n", result ? "passou" : "não passou");
 	return result;
 }
 
 /**************************************************************/
-
 int main() {
 	int score = 0;
 
-	printf("iniciando teste entry bin\n");
+	printf("\nIniciando o teste do módulo entry \n");
 
 	score += testCreate();
 
-	score += testDup();
-
 	score += testDestroy();
+
+	score += testDup();
 
 	score += testReplace();
 
 	score += testCompare();
 
-	printf("teste entry bin: %d/5\n", score);
+	printf("teste entry (score): %d/5\n", score);
 
 	if (score == 5)
 		return 0;
