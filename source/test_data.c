@@ -1,107 +1,132 @@
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "data.h"
-#include "data-private.h"
 
 /**************************************************************/
-/* Testa a criação do módulo data. Se este teste for efetuado
- * com sucesso, o programa imprime "passou!".
- */
-void test_data_create() {
-	assert(data_create(0, "a") == NULL);
-	assert(data_create(1, "a") != NULL);
-
-	char* string_test = "test";
-
-	assert(data_create(0, string_test) == NULL);
-	assert(data_create(10, string_test) != NULL);
-
-	int test_int = 8;
-	assert(data_create(0, &test_int) == NULL);
-	assert(data_create(10, &test_int) != NULL);
-
-	// supostamente o data podera ser qualuqer coisa
-	//  portanto poderiamos ate passar uma estrutura data para ele proprio
-
-	assert(data_create(0, NULL) == NULL);
-	assert(data_create(5, NULL) == NULL);
-
-	printf("test_data_create: passou!");
+void pee(const char* msg) {
+	perror(msg);
+	exit(0);
 }
 
 /**************************************************************/
-/* Testa a destruição do módulo data. Se este teste for
- * efetuado com sucesso, o programa imprime "passou!".
- */
-void test_data_destroy() {
-	struct data_t* good_data = data_create(15, strdup("good"));
-	struct data_t* bad_data = NULL;
-	struct data_t* bad_data_2 = data_create(0, strdup("bad"));
+int testCreate() {
+	int result, data_size;
+	struct data_t* data;
+	char* data_s = strdup("1234567890abc");
 
-	// double test_double = 3.141592653589793;
-	// struct data_t* good_data_2 = data_create(67, &test_double);
+	/* Ignore \0, because we consider arbitrary contents */
+	data_size = strlen(data_s);
 
-	// assert(data_destroy(good_data_2) == 0);
-	assert(data_destroy(good_data) == 0);
-	assert(data_destroy(bad_data) == -1);
-	assert(data_destroy(bad_data_2) == -1);
+	printf("Módulo data -> testCreate: ");
+	fflush(stdout);
 
-	printf("test_data_destroy: passou!");
+	assert(data_create(-1, data_s) == NULL);
+	result = (data_create(-1, data_s) == NULL);
+
+	assert(data_create(0, data_s) == NULL);
+	result = result && (data_create(0, data_s) == NULL);
+
+	assert(data_create(data_size, NULL) == NULL);
+	result = result && (data_create(data_size, NULL) == NULL);
+
+	if ((data = data_create(data_size, data_s)) == NULL)
+		pee("  data_create retornou NULL - O teste não pode prosseguir");
+
+	result = result && (data->data == data_s) && (data->datasize == data_size) && (memcmp(data->data, data_s, data_size) == 0);
+	data_destroy(data);
+
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
 }
 
 /**************************************************************/
-/* Testa a duplicação do módulo data. Se este teste for
- * efetuado com sucesso, o programa imprime "passou!".
- */
-void test_data_dup() {
-	struct data_t* good_data = data_create(27, strdup("good"));
-	struct data_t* bad_data = NULL;
+int testDestroy() {
+	char* data_s = strdup("1234567890abc");
+	int result, data_size = strlen(data_s);
+	struct data_t* data;
 
-	assert(data_dup(good_data) != NULL);
-	assert(data_dup(bad_data) == NULL);
+	printf("Módulo data -> testDestroy: ");
+	fflush(stdout);
 
-	struct data_t* dup_good_data = data_dup(good_data);
-	assert(data_dup(dup_good_data) != NULL);
+	assert(data_destroy(NULL) == -1);
+	result = (data_destroy(NULL) == -1);
 
-	assert(data_replace(dup_good_data, 10, strdup("good dup")) == 0);
-	assert(data_dup(dup_good_data) != NULL);
+	if ((data = data_create(data_size, data_s)) == NULL)
+		pee("  data_create retornou NULL - O teste não pode prosseguir");
 
-	assert(data_destroy(dup_good_data) == 0);
+	result = result && (data_destroy(data) == 0);
 
-	printf("test_data_dup: passou!");
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
 }
 
 /**************************************************************/
-/* Testa a substituição do módulo data. Se este teste for
- * efetuado com sucesso, o programa imprime "passou!".
- */
-void test_data_replace() {
-	struct data_t* good_data = data_create(50, strdup("good"));
-	struct data_t* bad_data = NULL;
-	struct data_t* bad_data_2 = data_create(0, strdup("bad"));
+int testDup() {
+	char* data_s = strdup("1234567890abc");
+	int result, data_size = strlen(data_s);
+	struct data_t* data;
+	struct data_t* data2;
 
-	assert(data_replace(good_data, 31, "evil") == 0);
-	assert(data_replace(bad_data, 1, "good") == -1);
-	assert(data_replace(bad_data_2, 16, "good") == -1);
+	printf("Módulo data -> testDup: ");
+	fflush(stdout);
 
-	assert(good_data->datasize == 31);
-	assert(memcmp(good_data->data, "evil", 5) == 0);
+	assert(data_dup(NULL) == NULL);
+	result = (data_dup(NULL) == NULL);
 
-	printf("test_data_replace: passou!");
+	data = (struct data_t*)malloc(sizeof(struct data_t));
+
+	data->data = malloc(1);
+
+	data->datasize = -1;
+	assert(data_dup(data) == NULL);
+	result = result && (data_dup(data) == NULL);
+
+	data->datasize = 0;
+	assert(data_dup(data) == NULL);
+	result = result && (data_dup(data) == NULL);
+
+	data->datasize = 1;
+	free(data->data);
+	data->data = NULL;
+	assert(data_dup(data) == NULL);
+	result = result && (data_dup(data) == NULL);
+
+	free(data);
+
+	if ((data = data_create(data_size, data_s)) == NULL)
+		pee("  data_create retornou NULL - O teste não pode prosseguir");
+
+	data2 = data_dup(data);
+
+	result = result && (data2 != data) && (data->data != data2->data) && (data->datasize == data2->datasize) && (memcmp(data->data, data2->data, data->datasize) == 0);
+
+	data_destroy(data);
+	data_destroy(data2);
+
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
 }
 
 /**************************************************************/
 int main() {
-	test_data_create();
-	printf("\n");
-	test_data_destroy();
-	printf("\n");
-	test_data_dup();
-	printf("\n");
-	test_data_replace();
-	printf("\n");
+	int score = 0;
 
-	return 0;
+	printf("\nIniciando o teste do módulo data \n");
+
+	score += testCreate();
+
+	score += testDestroy();
+
+	score += testDup();
+
+	printf("teste data (score): %d/3\n", score);
+
+	if (score == 3)
+		return 0;
+	else
+		return -1;
 }
