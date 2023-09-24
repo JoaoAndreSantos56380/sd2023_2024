@@ -10,12 +10,12 @@
  * Retorna o tamanho do buffer alocado ou -1 em caso de erro.
  */
 int keyArray_to_buffer(char** keys, char** keys_buf){
-    // Verificar se o array de keys é válido.
-    if(keys == NULL) {
-        return -1;
-    }
+	// Verificar se o array de keys é válido. Dúvida: o keys_buf é suposto ser NULL ao início?
+	if (keys == NULL || keys_buf != NULL) {
+		return -1;
+	}
 
-    // Obter o nº de keys (nkeys) no array de keys e calcular o tamanho do keys_buf (keys_buf_size).
+	 // Obter o nº de keys (nkeys) no array de keys e calcular o tamanho do keys_buf (keys_buf_size).
     int nkeys = 0;
     int keys_buf_size = sizeof(int); //tamanho inicial serve para guardar o nº de chaves (nkeys) no keys_buf.
     while(keys[nkeys]) {
