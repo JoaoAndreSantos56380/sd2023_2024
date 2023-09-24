@@ -25,7 +25,12 @@ struct data_t* data_create(int size, void* data) {
 
 	// atribuir o size e o data a nova estrutura criada
 	new_data->datasize = size;
-	new_data->data = data;
+	new_data->data = malloc(size);
+	if (new_data->data == NULL) {
+		free(new_data);
+		return NULL;
+	}
+	memcpy(new_data->data, data, size);
 
 	return new_data;
 }
@@ -87,8 +92,15 @@ int data_replace(struct data_t* data, int new_size, void* new_data) {
 
 	// libertar a memoria usada pela estrutura anteorior
 	free(data->data);
+
+	// Alocar memória para o novo data e substituir o size e o data.
 	data->datasize = new_size;
-	data->data = new_data;
+    data->data = malloc(new_size);
+    if (data->data == NULL) {
+        return -1; // Falha ao alocar memória.
+    }
+    memcpy(data->data, new_data, new_size);
+	
 	return 0;
 }
 
