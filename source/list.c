@@ -60,7 +60,7 @@ int list_add(struct list_t* list, struct entry_t* entry) {
 
 	if (list->size == 1) {
 		int compare = entry_compare(list->head->entry, entry);
-		if (compare == -1) {
+		if (compare == 1) {
 			struct node_t* new_node = (struct node_t*)malloc(sizeof(struct node_t));
 			if (new_node == NULL) {
 				return -1;
@@ -79,7 +79,7 @@ int list_add(struct list_t* list, struct entry_t* entry) {
 			list->size = 2;
 			return 1;
 		}
-		if (compare == 1) {
+		if (compare == -1) {
 			struct node_t* new_node = (struct node_t*)malloc(sizeof(struct node_t));
 			if (new_node == NULL) {
 				return -1;
@@ -97,7 +97,8 @@ int list_add(struct list_t* list, struct entry_t* entry) {
 	while (current != NULL) {
 		struct node_t* next = current->next;
 
-		int compare = entry_compare(current->entry, entry);
+		int compare = entry_compare(entry, current->entry);
+
 		if (compare == -1) {
 			struct node_t* new_node = (struct node_t*)malloc(sizeof(struct node_t));
 			if (new_node == NULL) {
@@ -105,19 +106,25 @@ int list_add(struct list_t* list, struct entry_t* entry) {
 			}
 			new_node->entry = entry;
 			new_node->next = current;
-			previous->next = new_node;
+			if (previous == NULL) {
+				list->head = new_node;
+			} else {
+				previous->next = new_node;
+			}
+
 			list->size++;
 			return 0;
 		}
 		if (compare == 0) {
-			if (entry_replace(current->entry, entry->key, entry->value) == -1) {
+			entry_destroy(current->entry);
+			current->entry = entry;
+			/* if (entry_replace(current->entry, entry->key, entry->value) == -1) {
 				return -1;
-			}
-			free(entry);
-			list->size++;
+			} */
+			// free(entry);
 			return 1;
 		}
-		if (compare == 1) {
+		if (compare == 1 && next == NULL) {
 			struct node_t* new_node = (struct node_t*)malloc(sizeof(struct node_t));
 			if (new_node == NULL) {
 				return -1;
@@ -150,26 +157,36 @@ int list_remove(struct list_t* list, char* key) {
 
 	struct node_t* father = NULL;
 	struct node_t* node = list->head;
+	struct node_t* to_destroy = NULL;
 
 	// quando e do segundo no ate ao fim
 	do {
 		if (strcmp(node->entry->key, key) == 0) {
 			if (node->next != NULL) {
-				struct node_t* temp = node->next;
-				entry_destroy(node->entry);
-				free(node->next);
-				free(node);
-				father->next = temp;
+				to_destroy = node;
+				if (father == NULL) {
+					list->head = node->next;
+				} else {
+					father->next = node->next;
+				}
+				entry_destroy(to_destroy->entry);
+				free(to_destroy);
+				list->size--;
+				return 0;
 			} else {
 				entry_destroy(node->entry);
 				free(node->next);
 				free(node);
+				node = NULL;
+				father->next = NULL;
+				list->size--;
+				return 0;
 			}
 		}
 		father = node;
 		node = node->next;
 
-	} while (node->next != NULL);
+	} while (node != NULL);
 
 	return 1;
 }
@@ -192,9 +209,6 @@ struct entry_t* list_get(struct list_t* list, char* key) {
 	return NULL;
 }
 
-/* Função que conta o número de entries na lista passada como argumento.
- * Retorna o tamanho da lista ou -1 em caso de erro.
- */
 int list_size(struct list_t* list) {
 	return list->size;
 }
@@ -206,12 +220,21 @@ int list_size(struct list_t* list) {
  */
 char** list_get_keys(struct list_t* list) {
 	// TODO E SUPOSTO O PONTEIRO ANDAR PARA A FRENTE? SE SIM COMO?
+	if (valid_list(list) == -1) {
+		return NULL;
+	}
+
 	char** keys = malloc((list->size + 1) * sizeof(char*));
 	struct node_t* node = list->head;
+	if (node == NULL) {
+		free(keys);
+		return NULL;
+	}
+
 	int index = 0;
-	while (node->next != NULL) {
+	while (node/* ->next */ != NULL) {
 		keys[index] = malloc(strlen(node->entry->key) + 1);
-		memcpy(keys[index], node->entry->key, strlen(node->entry->key)+1);
+		strcpy(keys[index], node->entry->key/* , strlen(node->entry->key)+1 */);
 		keys[index][strlen(node->entry->key)] = '\0';
 		index++;
 		node = node->next;
