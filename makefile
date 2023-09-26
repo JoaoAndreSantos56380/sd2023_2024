@@ -49,3 +49,13 @@ include $(wildcard $(DEP_DIR)/*.d)
 
 clean:
 	rm -rf $(DEP_DIR)/* $(OBJ_DIR)/* $(BIN_DIR)/*
+
+build:
+	mkdir $(OBJ_DIR)
+	mkdir $(BIN_DIR)
+
+valgrind:
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_data
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_entry
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_list
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_table
