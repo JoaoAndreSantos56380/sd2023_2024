@@ -4,12 +4,13 @@
 #include "list.h"
 
 struct table_t {
-	struct list_t **lists;
 	int size;
+	int rows;
+	struct list_t** lists;
 };
 
 /* Função que calcula o índice da lista a partir da chave
  */
-int hash_code(char *key, int n);
+int hash_code(char* key, int module);
 
 #endif
