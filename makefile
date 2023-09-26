@@ -1,5 +1,5 @@
 # Grupo 21
-# Joao Santos
+# Joao Santos 56380
 # Rafael Ferreira 57544
 # Ricardo Mateus
 
@@ -15,7 +15,7 @@ CC = gcc
 
 CFLAGS = -Wall -g -I $(INC_DIR)
 
-EXECS = $(BIN_DIR)/test_data $(BIN_DIR)/test_entry $(BIN_DIR)/test_list #$(BIN_DIR)/test_table $(BIN_DIR)/test_serialization
+EXECS = $(BIN_DIR)/test_data $(BIN_DIR)/test_entry $(BIN_DIR)/test_list $(BIN_DIR)/test_table #$(BIN_DIR)/test_serialization
 
 make: $(EXECS)
 
@@ -23,6 +23,8 @@ run:
 	$(BIN_DIR)/test_data
 	$(BIN_DIR)/test_entry
 	$(BIN_DIR)/test_list
+#	$(BIN_DIR)/test_serialization
+	$(BIN_DIR)/test_table
 
 $(BIN_DIR)/test_data: $(OBJ_DIR)/test_data.o $(OBJ_DIR)/data.o
 	$(CC) $^ -o $@
@@ -33,8 +35,8 @@ $(BIN_DIR)/test_entry: $(OBJ_DIR)/test_entry.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/dat
 $(BIN_DIR)/test_list: $(OBJ_DIR)/test_list.o $(OBJ_DIR)/list.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/data.o
 	$(CC) $^ -o $@
 
-#$(BIN_DIR)/test_serialization: $(OBJ_DIR)/test_serialization.o $(OBJ_DIR)/serialization.o
-#	$(CC) $^ -o $@
+$(BIN_DIR)/test_serialization: $(OBJ_DIR)/test_serialization.o $(OBJ_DIR)/serialization.o $(OBJ_DIR)/list.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/data.o
+	$(CC) $^ -o $@
 
 $(BIN_DIR)/test_table: $(OBJ_DIR)/test_table.o $(OBJ_DIR)/table.o $(OBJ_DIR)/list.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/data.o
 	$(CC) $^ -o $@
