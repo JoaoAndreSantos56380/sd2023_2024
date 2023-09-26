@@ -1,6 +1,8 @@
-#include <serialization.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "serialization.h"
+
 
 /* Serializa todas as chaves presentes no array de strings keys para o
  * buffer keys_buf, que ser� alocado dentro da fun��o. A serializa��o
@@ -82,5 +84,5 @@ char** buffer_to_keyArray(char* keys_buf){
         }
         keys_buf_ptr += strlen(keys_buf_ptr) + 1; // Avança para a próxima key. Pois strlen devolve o tamanho da string + char nulo.
     }
-
+	return keys;
 }
