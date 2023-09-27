@@ -66,7 +66,7 @@ int testAll2() {
 	int result, i;
 	struct table_t* table = table_create(20);
 	char* key[16384];
-	struct data_t *data[16384], *d, *data2, *data3, *data4, *deita;
+	struct data_t *data[16384], *d, *data2, *data3, *data4, *deita, *deita2, *deita3;
 
 	printf("Módulo table -> testAll2: ");
 	fflush(stdout);
@@ -77,7 +77,7 @@ int testAll2() {
 		data[i] = data_create(strlen(key[i]) + 1, strdup(key[i]));
 
 		table_put(table, key[i], data[i]);
-		data_destroy(data[i]);
+		//data_destroy(data[i]);
 	}
 
 	assert(table_size(table) == 16384);
@@ -118,13 +118,13 @@ int testAll2() {
 	table_put(table, key[11000], d);
 	data_destroy(d);
 
-	assert(table_get(table, key[11000]) != NULL);
-	result = result && (table_get(table, key[11000]) != NULL);
+	assert((deita2 = table_get(table, key[11000])) != NULL);
+	result = result && ((deita3 = table_get(table, key[11000])) != NULL);
 
 	assert(table_size(table) == 16383);
 	result = result && (table_size(table) == 16383);
 
-	for (i = 0; i < 16383; i++) {
+	for (i = 0; i < 16384; i++) {
 		d = table_get(table, key[i]);
 
 		if (i == 2000) {
@@ -153,7 +153,7 @@ int testAll2() {
 		data_destroy(d);
 	}
 
-	for (i = 0; i < 16383; i++) {
+	for (i = 0; i < 16384; i++) {
 		free(key[i]);
 		data_destroy(data[i]);
 	}
@@ -161,6 +161,9 @@ int testAll2() {
 	data_destroy(data2);
 	data_destroy(data3);
 	data_destroy(data4);
+	data_destroy(deita);
+	data_destroy(deita2);
+	data_destroy(deita3);
 
 	printf("%s\n", result ? "passou" : "não passou");
 	return result;
