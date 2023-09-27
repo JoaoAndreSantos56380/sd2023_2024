@@ -22,12 +22,12 @@ struct entry_t* entry_create(char* key, struct data_t* data) {
 		return NULL;
 	}
 	// Alocar memória para a key e atribuir a key à entry:
-    entry->key = malloc(strlen(entry->key) + 1);
+    entry->key = malloc(strlen(key) + 1);
 	if (entry->key == NULL) {
-		free(entry);
-		return NULL;
+    	free(entry);
+    	return NULL;
 	}
-	strcpy(entry->key, entry->key);
+	strcpy(entry->key, key);
 	// Alocar memória para a data e atribuir a data à entry.
 	entry->value = data_dup(data);
 	if(entry->value == NULL) {
