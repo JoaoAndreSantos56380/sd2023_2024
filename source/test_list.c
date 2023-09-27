@@ -1,219 +1,295 @@
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "data.h"
+#include "entry.h"
 #include "list.h"
 
 /**************************************************************/
-/*
- * Testa a criação de uma lista. Se este teste for efetuado 
- * com sucesso, o programa imprime "passou!".
- */
-void test_list_create() {
-    struct list_t* good_list = list_create();
-    assert(good_list != NULL);
-
-    printf("test_list_create: passou!");
+void pee(const char* msg) {
+	perror(msg);
+	exit(0);
 }
 
 /**************************************************************/
-/*
- * Testa a adição de uma entry a uma lista. Se este teste for 
- * efetuado com sucesso, o programa imprime "passou!".
- */
-void test_list_add() {
-    struct list_t* good_list = list_create();
-    struct list_t* bad_list;
-    struct entry_t* bad_entry;
-    bad_entry->key = "chave";
-    bad_entry->value->datasize = 10;
-    bad_entry->value->data = "errado";
+int testEmptyList() {
+	struct list_t* list = list_create();
 
-    struct data_t* data1 = data_create(25, 12);
-    struct entry_t* entry1 = entry_create("chave", data1);
-    struct data_t* data2 = data_create(100, "bruh");
-    struct entry_t* entry2 = entry_create("chavona", data2);
-    struct data_t* data3 = data_create(5, 0);
-    struct entry_t* entry3 = entry_create("chave", data3); //entry com chave igual à entry1
+	printf("Módulo list -> testEmptyList: ");
+	fflush(stdout);
 
-    assert(list_add(bad_list, entry1) == -1); //testa lista incorreta
-    assert(list_add(good_list, bad_entry) == -1); //testa entry incorreta
+	int result = (list != NULL) && (list_size(list) == 0);
 
-    assert(list_add(good_list, entry1) == 0); //testa se o add está a ser feito corretamente
-    assert(list_add(good_list, entry2) == 0);
-    assert(list_add(good_list, entry3) == 1);
+	list_destroy(list);
 
-    printf("test_list_add: passou!");
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
 }
 
 /**************************************************************/
-/*
- * Testa a remoção de uma entry da lista. Se este teste for 
- * efetuado com sucesso, o programa imprime "passou!".
- */
-void test_list_remove() {
-    struct list_t* good_list = list_create();
-    struct list_t* bad_list;
-    struct entry_t* bad_entry;
+int testAddFirst() {
+	int result;
+	char* key = strdup("abc");
+	struct data_t* value = data_create(4, strdup("1234"));
+	struct entry_t* entry = entry_create(key, value);
+	struct list_t* list = list_create();
 
-    struct data_t* data1 = data_create(25, 12);
-    struct entry_t* entry1 = entry_create("chave", data1);
-    struct data_t* data2 = data_create(100, "bruh");
-    struct entry_t* entry2 = entry_create("chavona", data2);
+	printf("Módulo list -> testAddFirst: ");
+	fflush(stdout);
 
-    list_add(good_list, entry1);
-    list_add(good_list, entry2);
+	assert(list_add(NULL, entry) == -1);
+	result = (list_add(NULL, entry) == -1);
 
-    assert(list_remove(good_list, "chave") == 0);
-    assert(list_remove(good_list, "chave") == 1);
-    assert(list_remove(bad_list, "chave") == -1);
+	assert(list_add(list, NULL) == -1);
+	result = result && (list_add(list, NULL) == -1);
+	result = result && (list_add(list, entry) == 0);
+	result = result && (list_get(list, "abc") == entry);
+	result = result && (list_size(list) == 1);
 
-    printf("test_list_remove: passou!");
+	list_destroy(list);
+
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
 }
 
 /**************************************************************/
-/*
- * Testa a destruição de uma lista. Se este teste for efetuado 
- * com sucesso, o programa imprime "passou!".
- */
-void test_list_destroy() {
-    struct list_t* good_list1 = list_create();
-    struct list_t* good_list2 = list_create();
-    struct list_t* bad_list;
+int testAdd123RemoveHead() {
+	int result;
+	char* key1 = strdup("abc1");
+	char* key2 = strdup("abc2");
+	char* key3 = strdup("abc3");
+	struct data_t* value1 = data_create(3, strdup("123"));
+	struct data_t* value2 = data_create(3, strdup("456"));
+	struct data_t* value3 = data_create(3, strdup("789"));
+	struct entry_t* entry1 = entry_create(key1, value1);
+	struct entry_t* entry2 = entry_create(key2, value2);
+	struct entry_t* entry3 = entry_create(key3, value3);
+	struct list_t* list = list_create();
 
-    struct data_t* data1 = data_create(25, 12);
-    struct entry_t* entry1 = entry_create("chave", data1);
-    struct data_t* data2 = data_create(100, "bruh");
-    struct entry_t* entry2 = entry_create("chavona", data2);
+	printf("Módulo list -> testAdd123RemoveHead: ");
+	fflush(stdout);
 
-    list_add(good_list2, entry1);
-    list_add(good_list2, entry2);
+	result = (list_add(list, entry1) == 0);
+	result = result && (list_add(list, entry2) == 0);
+	result = result && (list_add(list, entry3) == 0);
 
-    assert(list_destroy(good_list1) == 0);
-    assert(list_destroy(bad_list) == -1);
-    assert(list_destroy(good_list2) == 0);
+	result = result && (list_remove(list, "abc1") == 0);
+	result = result && (list_get(list, "abc2") == entry2);
+	result = result && (list_get(list, "abc3") == entry3);
+	result = result && (list_size(list) == 2);
 
-    printf("test_list_destroy: passou!");
+	list_destroy(list);
+
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
 }
 
 /**************************************************************/
-/*
- * Testa a função que obtém uma entry de uma lista. Se este 
- * teste for efetuado com sucesso, o programa imprime "passou!".
- */
-void test_list_get() {
-    struct list_t* good_list = list_create();
-    struct list_t* bad_list;
+int testAdd321RemoveMiddle() {
+	int result;
+	char* key1 = strdup("abc1");
+	char* key2 = strdup("abc2");
+	char* key3 = strdup("abc3");
+	struct data_t* value1 = data_create(3, strdup("123"));
+	struct data_t* value2 = data_create(3, strdup("456"));
+	struct data_t* value3 = data_create(3, strdup("789"));
+	struct entry_t* entry1 = entry_create(key1, value1);
+	struct entry_t* entry2 = entry_create(key2, value2);
+	struct entry_t* entry3 = entry_create(key3, value3);
+	struct list_t* list = list_create();
 
-    struct data_t* data1 = data_create(25, 12);
-    struct entry_t* entry1 = entry_create("chave", data1);
-    struct data_t* data2 = data_create(100, "bruh");
-    struct entry_t* entry2 = entry_create("chavona", data2);
-    struct data_t* data3 = data_create(5, 0);
-    struct entry_t* entry3 = entry_create("chave", data3); //entry com chave igual à entry1
+	printf("Módulo list -> testAdd321RemoveMiddle: ");
+	fflush(stdout);
 
-    list_add(good_list, entry1);
-    list_add(good_list, entry2);
+	result = (list_add(list, entry3) == 0);
+	result = result && (list_add(list, entry2) == 0);
+	result = result && (list_add(list, entry1) == 0);
 
-    assert(list_get(bad_list, "chave") == NULL);
-    assert(list_get(good_list, "ronaldo") == NULL);
-    assert(entry_compare(list_get(good_list, "chave"), entry1) == 0);
-    assert(entry_compare(list_get(good_list, "chave"), entry3) == 0);
+	result = result && (list_remove(list, "abc2") == 0);
+	result = result && (list_get(list, "abc1") == entry1);
+	result = result && (list_get(list, "abc3") == entry3);
+	result = result && (list_size(list) == 2);
 
-    list_add(good_list, entry3); //substitui a entry com a key "chave"
-    assert(entry_compare(list_get(good_list, "chave"), entry1) == 0);
-    assert(entry_compare(list_get(good_list, "chave"), entry3) == 0);
+	list_destroy(list);
 
-    printf("test_list_get: passou!");
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
 }
 
 /**************************************************************/
-/*
- * Testa a função que indica o tamanho de uma lista. Se este 
- * teste for efetuado com sucesso, o programa imprime "passou!".
- */
-void test_list_size() {
-    struct list_t* good_list = list_create();
-    struct list_t* bad_list;
+int testAdd132RemoveTail() {
+	int result;
+	char* key1 = strdup("abc1");
+	char* key2 = strdup("abc2");
+	char* key3 = strdup("abc3");
+	struct data_t* value1 = data_create(3, strdup("123"));
+	struct data_t* value2 = data_create(3, strdup("456"));
+	struct data_t* value3 = data_create(3, strdup("789"));
+	struct entry_t* entry1 = entry_create(key1, value1);
+	struct entry_t* entry2 = entry_create(key2, value2);
+	struct entry_t* entry3 = entry_create(key3, value3);
+	struct list_t* list = list_create();
 
-    assert(list_size(bad_list) == -1);
-    assert(list_size(good_list) == 0);
+	printf("Módulo list -> testAdd132RemoveTail: ");
+	fflush(stdout);
 
-    struct data_t* data1 = data_create(25, 12);
-    struct entry_t* entry1 = entry_create("chave", data1);
-    struct data_t* data2 = data_create(100, "bruh");
-    struct entry_t* entry2 = entry_create("chavona", data2);
-    struct data_t* data3 = data_create(5, 0);
-    struct entry_t* entry3 = entry_create("chave", data3); //entry com chave igual à entry1
+	result = (list_add(list, entry1) == 0);
+	result = result && (list_add(list, entry3) == 0);
+	result = result && (list_add(list, entry2) == 0);
 
-    list_add(good_list, entry1);
-    list_add(good_list, entry2);
-    list_add(good_list, entry3); //substitui entry1
+	result = result && (list_remove(list, "abc2") == 0);
+	result = result && (list_get(list, "abc1") == entry1);
+	result = result && (list_get(list, "abc3") == entry3);
+	result = result && (list_size(list) == 2);
 
-    assert(list_size(good_list) == 2);
+	list_destroy(list);
 
-    list_remove(good_list, "chave");
-    assert(list_size(good_list) == 1);
-
-    printf("test_list_size: passou!");
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
 }
 
 /**************************************************************/
-/*
- * Testa:
- * - A função get_keys que devolve uma cópia de todas as keys 
- * na lista.
- * - A função free_keys que liberta a memória ocupada pelo 
- * array de keys obtido pela função list_get_keys.
- * 
- * Se este teste for efetuado com sucesso, o programa imprime 
- * "passou!".
- */
-void test_list_keys() {
-    struct list_t* good_list = list_create();
-    struct list_t* bad_list;
+int testAdd123RemoveOther() {
+	int result;
+	char* key1 = strdup("abc1");
+	char* key2 = strdup("abc2");
+	char* key3 = strdup("abc3");
+	struct data_t* value1 = data_create(3, strdup("123"));
+	struct data_t* value2 = data_create(3, strdup("456"));
+	struct data_t* value3 = data_create(3, strdup("789"));
+	struct entry_t* entry1 = entry_create(key1, value1);
+	struct entry_t* entry2 = entry_create(key2, value2);
+	struct entry_t* entry3 = entry_create(key3, value3);
+	struct list_t* list = list_create();
 
-    //testar o get_keys
-    assert(list_get_keys(bad_list) == NULL);
-    char** result1 = list_get_keys(good_list);
-    assert((sizeof(result1) / sizeof(result1[0])) == 0); //0 keys
+	printf("Módulo list -> testAdd123RemoveOther: ");
+	fflush(stdout);
 
-    struct data_t* data1 = data_create(25, 12);
-    struct entry_t* entry1 = entry_create("chave", data1);
-    struct data_t* data2 = data_create(100, "bruh");
-    struct entry_t* entry2 = entry_create("chavona", data2);
+	result = (list_add(list, entry1) == 0);
+	result = result && (list_add(list, entry2) == 0);
+	result = result && (list_add(list, entry3) == 0);
 
-    list_add(good_list, entry1);
-    list_add(good_list, entry2);
+	result = result && (list_remove(list, "other") == 1);
+	result = result && (list_size(list) == 3);
 
-    char** result2 = list_get_keys(good_list);
-    assert((sizeof(result2) / sizeof(result2[0])) == 2); //2 keys
+	list_destroy(list);
 
-    //testar o free_keys
-    assert(list_free_keys(result1) == 0);
-    assert(list_free_keys(result2) == 0);
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
+}
 
-    char** dont_exist;
-    assert(list_free_keys(dont_exist) == -1);
+/**************************************************************/
+int testInsertDupKey() {
+	int result;
+	char* key1 = strdup("abc1");
+	char* key2 = strdup("abc2");
+	char* key3 = strdup("abc3");
+	struct data_t* value1 = data_create(3, strdup("123"));
+	struct data_t* value2 = data_create(3, strdup("456"));
+	struct data_t* value3 = data_create(3, strdup("789"));
+	struct entry_t* entry1 = entry_create(key1, value1);
+	struct entry_t* entry2 = entry_create(key2, value2);
+	struct entry_t* entry3 = entry_create(key3, value3);
+	struct entry_t* entry4 = entry_dup(entry1);
+	struct entry_t* entry5 = entry_dup(entry1);
+	struct entry_t* entry6 = entry_dup(entry3);
+	struct list_t* list = list_create();
 
-    printf("test_list_keys: passou!");
+	printf("Módulo list -> testInsertDupKey: ");
+	fflush(stdout);
+
+	result = (list_add(list, entry1) == 0);
+	result = result && (list_add(list, entry2) == 0);
+	result = result && (list_add(list, entry3) == 0);
+	result = result && (list_get(list, "abc1") == entry1);
+	result = result && (list_get(list, "abc2") == entry2);
+	result = result && (list_add(list, entry4) == 1);
+	result = result && (list_get(list, "abc1") == entry4);
+	result = result && (list_add(list, entry5) == 1);
+	result = result && (list_get(list, "abc1") == entry5);
+	result = result && (list_add(list, entry6) == 1);
+	result = result && (list_get(list, "abc2") == entry2);
+	result = result && (list_get(list, "abc3") == entry6);
+	result = result && (list_size(list) == 3);
+
+	list_destroy(list);
+
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
+}
+
+/**************************************************************/
+int testGetKeys() {
+	int result;
+	char* key1 = strdup("abc1");
+	char* key2 = strdup("abc2");
+	char* key3 = strdup("abc3");
+	char** keys;
+	struct data_t* value1 = data_create(3, strdup("123"));
+	struct data_t* value2 = data_create(3, strdup("456"));
+	struct data_t* value3 = data_create(3, strdup("789"));
+	struct entry_t* entry1 = entry_create(key1, value1);
+	struct entry_t* entry2 = entry_create(key2, value2);
+	struct entry_t* entry3 = entry_create(key3, value3);
+	struct list_t* list = list_create();
+
+	printf("Módulo list -> testGetKeys: ");
+	fflush(stdout);
+
+	assert(list_get_keys(list) == NULL);
+	result = (list_get_keys(list) == NULL);
+
+	list_add(list, entry1);
+	list_add(list, entry2);
+	list_add(list, entry3);
+
+	assert(list_get_keys(NULL) == NULL);
+	result = result && (list_get_keys(NULL) == NULL);
+
+	keys = list_get_keys(list);
+
+	result = result && (strcmp(keys[0], entry1->key) == 0) && (keys[0] != entry1->key) && (strcmp(keys[1], entry2->key) == 0) && (keys[1] != entry2->key) && (strcmp(keys[2], entry3->key) == 0) && (keys[2] != entry3->key) && keys[3] == NULL;
+
+	assert(list_free_keys(NULL) == -1);
+	result = result && (list_free_keys(NULL) == -1);
+
+	result = result && (list_free_keys(keys) == 0);
+
+	list_destroy(list);
+
+	printf("%s\n", result ? "passou" : "não passou");
+	return result;
 }
 
 /**************************************************************/
 int main() {
-    test_list_create();
-	printf("\n");
-    test_list_add();
-    printf("\n");
-    test_list_remove();
-    printf("\n");
-    test_list_destroy();
-    printf("\n");
-    test_list_get();
-    printf("\n");
-    test_list_size();
-    printf("\n");
-    test_list_keys();
-    printf("\n");
-    return 0;
+	int score = 0;
+
+	printf("\nIniciando teste do módulo list \n");
+
+	score += testEmptyList();
+
+	score += testAddFirst();
+
+	score += testAdd123RemoveHead();
+
+	score += testAdd321RemoveMiddle();
+
+	score += testAdd132RemoveTail();
+
+	score += testAdd123RemoveOther();
+
+	score += testInsertDupKey();
+
+	score += testGetKeys();
+
+	printf("teste list (score): %d/8\n", score);
+
+	if (score == 8)
+		return 0;
+	else
+		return -1;
 }

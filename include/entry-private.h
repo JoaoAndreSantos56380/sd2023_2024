@@ -1,8 +1,10 @@
 #ifndef _ENTRY_PRIVATE_H
 #define _ENTRY_PRIVATE_H
+
+#include "entry.h"
 /* Função que valida um entry.
  * Retorna 0 (OK) ou -1 em caso de erro.
  */
-int entry_valid(struct entry_t* entry);
+int entry_valid(struct entry_t*);
 
 #endif
