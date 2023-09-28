@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+
 #include "serialization.h"
 
 
@@ -32,8 +35,9 @@ int keyArray_to_buffer(char** keys, char** keys_buf){
         return -1; // Falha ao alocar memória no keys_buf!
     }
 
-    // Copiar o nº de keys (nkeys) para o início do keys_buf.
-    memcpy(*keys_buf, &nkeys, sizeof(int)); //memcpy usa endereços! Por isso é que temos &nkeys.
+    // Copiar o nº de keys (nkeys) para o início do keys_buf. Transformando o nº de keys em network byte order!
+    int nkeys_network_byte_order = htonl(nkeys);
+    memcpy(*keys_buf, &nkeys_network_byte_order, sizeof(int)); //memcpy usa endereços! Por isso é que temos &nkeys.
     char* keys_buf_ptr = *keys_buf + sizeof(int); // Pointer que aponta para a posição atual no buffer, neste caso seguindo o exemplo estaria em 'key1'.
 
     // Copiar as chaves para o keys_buf.
@@ -58,9 +62,10 @@ char** buffer_to_keyArray(char* keys_buf){
         return NULL;
     }
 
-    // Ler o nº de chaves (nkeys) do keys_buf.
-    int nkeys;
-    memcpy(&nkeys, keys_buf, sizeof(int)); //não se usa &keys_buf, pois keys_buf é um ponteiro!
+    // Ler o nº de chaves (nkeys) do keys_buf. O num_keys deve ser transformado de network byte order para host byte order!
+    int nkeys_network_byte_order;
+    memcpy(&nkeys_network_byte_order, keys_buf, sizeof(int)); //não se usa &keys_buf, pois keys_buf é um ponteiro!
+    int nkeys = ntohl(nkeys_network_byte_order);
 
     // Mesmo processo/"método" do ponteiro para ler as keys no keys_buf.
     char* keys_buf_ptr = keys_buf + sizeof(int);
