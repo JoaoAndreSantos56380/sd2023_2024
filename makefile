@@ -15,7 +15,7 @@ CC = gcc
 
 CFLAGS = -Wall -g -I $(INC_DIR)
 
-EXECS = $(BIN_DIR)/test_data $(BIN_DIR)/test_entry $(BIN_DIR)/test_list $(BIN_DIR)/test_table #$(BIN_DIR)/test_serialization
+EXECS = $(BIN_DIR)/test_data $(BIN_DIR)/test_entry $(BIN_DIR)/test_list $(BIN_DIR)/test_table $(BIN_DIR)/test_table_nosso $(BIN_DIR)/test_serialization
 
 make: $(EXECS)
 
@@ -23,8 +23,9 @@ run:
 	$(BIN_DIR)/test_data
 	$(BIN_DIR)/test_entry
 	$(BIN_DIR)/test_list
-#	$(BIN_DIR)/test_serialization
 	$(BIN_DIR)/test_table
+	$(BIN_DIR)/test_table_nosso
+	$(BIN_DIR)/test_serialization
 
 $(BIN_DIR)/test_data: $(OBJ_DIR)/test_data.o $(OBJ_DIR)/data.o
 	$(CC) $^ -o $@
@@ -39,6 +40,9 @@ $(BIN_DIR)/test_serialization: $(OBJ_DIR)/test_serialization.o $(OBJ_DIR)/serial
 	$(CC) $^ -o $@
 
 $(BIN_DIR)/test_table: $(OBJ_DIR)/test_table.o $(OBJ_DIR)/table.o $(OBJ_DIR)/list.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/data.o
+	$(CC) $^ -o $@
+
+$(BIN_DIR)/test_table_nosso: $(OBJ_DIR)/test_table_nosso.o $(OBJ_DIR)/table.o $(OBJ_DIR)/list.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/data.o
 	$(CC) $^ -o $@
 
 
@@ -59,3 +63,5 @@ valgrind:
 	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_entry
 	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_list
 	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_table
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_table_nosso
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_serialization
