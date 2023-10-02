@@ -1,7 +1,7 @@
 # Grupo 21
 # Joao Santos 56380
 # Rafael Ferreira 57544
-# Ricardo Mateus
+# Ricardo Mateus 56366
 
 # Diretório de objetos
 OBJ_DIR = object

@@ -1,3 +1,7 @@
+// Grupo 21
+// Joao Santos 56380
+// Rafael Ferreira 57544
+// Ricardo Mateus 56366
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -21,7 +25,6 @@ int keyArray_to_buffer(char** keys, char** keys_buf) {
 	}
 
 	// Alocar memória no keys_buf.
-	// '*keys_buf' e não 'keys_buf' pois queremos mudar o valor do ponteiro original passado.
 	*keys_buf = (char*)malloc(keys_buf_size);
 	if (*keys_buf == NULL) {
 		return -1;	// Falha ao alocar memória no keys_buf!
@@ -29,8 +32,8 @@ int keyArray_to_buffer(char** keys, char** keys_buf) {
 
 	// Copiar o nº de keys (nkeys) para o início do keys_buf. Transformando o nº de keys em network byte order!
 	int nkeys_network_byte_order = htonl(nkeys);
-	memcpy(*keys_buf, &nkeys_network_byte_order, sizeof(int));	// memcpy usa endereços! Por isso é que temos &nkeys.
-	char* keys_buf_ptr = *keys_buf + sizeof(int);					// Pointer que aponta para a posição atual no buffer, neste caso seguindo o exemplo estaria em 'key1'.
+	memcpy(*keys_buf, &nkeys_network_byte_order, sizeof(int));
+	char* keys_buf_ptr = *keys_buf + sizeof(int);			// Pointer que aponta para a posição atual no buffer, neste caso, seguindo o exemplo acima, estaria em 'key1'.
 
 	// Copiar as chaves para o keys_buf.
 	for (int i = 0; i < nkeys; i++) {
@@ -49,14 +52,14 @@ char** buffer_to_keyArray(char* keys_buf) {
 
 	// Ler o nº de chaves (nkeys) do keys_buf. O num_keys deve ser transformado de network byte order para host byte order!
 	int nkeys_network_byte_order;
-	memcpy(&nkeys_network_byte_order, keys_buf, sizeof(int));  // não se usa &keys_buf, pois keys_buf é um ponteiro!
+	memcpy(&nkeys_network_byte_order, keys_buf, sizeof(int));
 	int nkeys = ntohl(nkeys_network_byte_order);
 
-	// Mesmo processo/"método" do ponteiro para ler as keys no keys_buf.
+	// Mesmo processo do ponteiro para ler as keys no keys_buf.
 	char* keys_buf_ptr = keys_buf + sizeof(int);
 
 	// Alocar memória no array de strings.
-	char** keys = (char**)malloc((nkeys + 1) * sizeof(char*));	//+1 para o char nulo no final '\0'. e * sizeof(char*) por se tratarem de strings.
+	char** keys = (char**)malloc((nkeys + 1) * sizeof(char*));	//+1 para o char nulo no final '\0'.
 	if (keys == NULL) {
 		return NULL;  // Falha ao alocar memória nas keys!
 	}
