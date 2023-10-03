@@ -2,3 +2,11 @@
 - Joao Santos 56380
 - Rafael Ferreira 57544
 - Ricardo Mateus 56366
+
+
+Comandos make:
+
+	Gerar todos os executaveis: 			make
+	Correr todos os executaveis: 			make run
+	Eliminar diretorias object e binary: 	make clean
+	Correr valgrind:						make valgrind
