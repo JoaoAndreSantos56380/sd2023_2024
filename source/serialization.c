@@ -77,5 +77,6 @@ char** buffer_to_keyArray(char* keys_buf) {
 		}
 		keys_buf_ptr += strlen(keys_buf_ptr) + 1;	 // Avança para a próxima key. Pois strlen devolve o tamanho da string + char nulo.
 	}
+	keys[nkeys] = NULL;
 	return keys;
 }
