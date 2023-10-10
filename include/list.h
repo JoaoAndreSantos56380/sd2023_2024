@@ -1,3 +1,7 @@
+// Grupo 21
+// Joao Santos 56380
+// Rafael Ferreira 57544
+// Ricardo Mateus 56366
 #ifndef _LIST_H
 #define _LIST_H /* Módulo list */
 

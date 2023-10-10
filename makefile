@@ -15,7 +15,7 @@ CC = gcc
 
 CFLAGS = -Wall -g -I $(INC_DIR)
 
-EXECS = $(BIN_DIR)/test_data $(BIN_DIR)/test_entry $(BIN_DIR)/test_list $(BIN_DIR)/test_serialization #$(BIN_DIR)/test_table
+EXECS = $(BIN_DIR)/test_data $(BIN_DIR)/test_entry $(BIN_DIR)/test_list $(BIN_DIR)/test_table $(BIN_DIR)/test_serialization
 
 make: $(EXECS)
 
@@ -23,6 +23,7 @@ run:
 	$(BIN_DIR)/test_data
 	$(BIN_DIR)/test_entry
 	$(BIN_DIR)/test_list
+	$(BIN_DIR)/test_table
 	$(BIN_DIR)/test_serialization
 
 $(BIN_DIR)/test_data: $(OBJ_DIR)/test_data.o $(OBJ_DIR)/data.o
@@ -48,3 +49,31 @@ include $(wildcard $(DEP_DIR)/*.d)
 
 clean:
 	rm -rf $(DEP_DIR)/* $(OBJ_DIR)/* $(BIN_DIR)/*
+
+build:
+	mkdir $(OBJ_DIR)
+	mkdir $(BIN_DIR)
+
+valgrind_all:
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_data
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_entry
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_list
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_table
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_serialization
+
+valgrind_data:
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_data
+valgrind_entry:
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_entry
+valgrind_list:
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_list
+valgrind_table:
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_table
+valgrind_serialization:
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_serialization
+
+sdmessage.pb-c.o:
+	protoc --c_out=. sdmessage.proto
+	mv sdmessage.pb-c.c source
+	mv sdmessage.pb-c.h include
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/sdmessage.pb-c.c -o $(OBJ_DIR)/sdmessage.pb-c.o

@@ -1,8 +1,12 @@
+// Grupo 21
+// Joao Santos 56380
+// Rafael Ferreira 57544
+// Ricardo Mateus 56366
 #ifndef _SERIALIZATION_H
 #define _SERIALIZATION_H
 
 /* Serializa todas as chaves presentes no array de strings keys para o
- * buffer keys_buf, que será alocado dentro da função. A serialização
+ * buffer keys_buf, que serï¿½ alocado dentro da funï¿½ï¿½o. A serializaï¿½ï¿½o
  * deve ser feita de acordo com o seguinte formato:
  *    | int   | string | string | string |
  *    | nkeys | key1   | key2   | key3   |
@@ -11,8 +15,8 @@
 int keyArray_to_buffer(char **keys, char **keys_buf);
 
 /* De-serializa a mensagem contida em keys_buf, colocando-a num array de
- * strings cujo espaco em memória deve ser reservado. A mensagem contida
- * em keys_buf deverá ter o seguinte formato:
+ * strings cujo espaco em memï¿½ria deve ser reservado. A mensagem contida
+ * em keys_buf deverï¿½ ter o seguinte formato:
  *    | int   | string | string | string |
  *    | nkeys | key1   | key2   | key3   |
  * Retorna o array de strings ou NULL em caso de erro.
