@@ -71,3 +71,9 @@ valgrind_table:
 	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_table
 valgrind_serialization:
 	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all $(BIN_DIR)/test_serialization
+
+sdmessage.pb-c.o:
+	protoc --c_out=. sdmessage.proto
+	mv sdmessage.pb-c.c source
+	mv sdmessage.pb-c.h include
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/sdmessage.pb-c.c -o $(OBJ_DIR)/sdmessage.pb-c.o
