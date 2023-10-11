@@ -5,6 +5,8 @@
 		"data.h": "c",
 		"stdio.h": "c",
 		"data-private.h": "c",
-		"table.h": "c"
+		"table.h": "c",
+		"message-private.h": "c",
+		"table_client-private.h": "c"
 	}
 }
