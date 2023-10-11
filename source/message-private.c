@@ -62,17 +62,17 @@ int write_all(int socket, void *buf, int size) {
  */
 struct messageT *message_receive(int client_socket) {
     uint32_t message_length;
-    if (read_all(client_socket, &message_length, sizeof(uint32_t)) < 0) {
+    if(read_all(client_socket, &message_length, sizeof(uint32_t)) < 0) {
         return NULL;
     }
 
     char *buffer = (char *)malloc(message_length);
-    if (buffer == NULL) {
+    if(buffer == NULL) {
         perror("Error allocating memory for message");
         return NULL;
     }
 
-    if (read_all(client_socket, buffer, message_length) < 0) {
+    if(read_all(client_socket, buffer, message_length) < 0) {
         free(buffer);
         return NULL;
     }
@@ -80,7 +80,7 @@ struct messageT *message_receive(int client_socket) {
     struct messageT *request = message_t__unpack(NULL, message_length, buffer);
     free(buffer);
 
-    if (request == NULL) {
+    if(request == NULL) {
         fprintf(stderr, "Error unpacking message\n");
     }
 
@@ -95,19 +95,19 @@ struct messageT *message_receive(int client_socket) {
 int message_send(int client_socket, struct messageT *msg) {
     uint32_t message_length = message_t__get_packed_size(msg);
     char *buffer = (char *)malloc(message_length);
-    if (buffer == NULL) {
+    if(buffer == NULL) {
         perror("Error allocating memory for message");
         return -1;
     }
 
     message_t__pack(msg, (uint8_t *)buffer);
 
-    if (write_all(client_socket, &message_length, sizeof(uint32_t) < 0)) {
+    if(write_all(client_socket, &message_length, sizeof(uint32_t) < 0)) {
         free(buffer);
         return -1;
     }
 
-    if (write_all(client_socket, buffer, message_length) < 0) {
+    if(write_all(client_socket, buffer, message_length) < 0) {
         free(buffer);
         return -1;
     }
