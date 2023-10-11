@@ -13,8 +13,16 @@ struct table_t {
 	struct list_t** lists;
 };
 
-/* Função que calcula o índice da lista a partir da chave
+/* 
+ * Função que calcula o índice da lista a partir da chave
  */
 int hash_code(char* key, int module);
 
+/*
+ * Função que devolve todas as entries de uma lista. 
+ * O num_entries deve ser inicializado anteriormente a 0,
+ * este vai servir para sabermos quantas entries foram 
+ * devolvidas.
+ */
+struct entry_t **get_all_entries(struct table_t *table, int *num_entries);
 #endif

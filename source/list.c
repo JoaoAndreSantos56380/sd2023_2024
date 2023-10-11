@@ -11,12 +11,14 @@
 #include "list-private.h"
 
 struct list_t* list_create() {
+	// Alocar memória para a lista.
 	struct list_t* list = malloc(sizeof(struct list_t));
 
 	if (list == NULL) {
 		return NULL;
 	}
 
+	// Inicializar os valores da lista.
 	list->size = 0;
 	list->head = NULL;
 
@@ -24,10 +26,12 @@ struct list_t* list_create() {
 }
 
 int list_destroy(struct list_t* list) {
+	// Verificar se a lista é válida.
 	if (list == NULL) {
 		return -1;
 	}
 
+	// Destruir os nodes da lista e os entrys dos nodes.
 	struct node_t* current = list->head;
 	while (current != NULL) {
 		struct node_t* next = current->next;
@@ -42,7 +46,8 @@ int list_destroy(struct list_t* list) {
 	return 0;
 }
 
-int list_add(struct list_t* list, struct entry_t* entry) {
+int list_add(struct list_t* list, struct entry_t* entry) { //Esta função pode ser melhorada!
+	// Verificar se a lista e a entry são válidas.
 	if (valid_list(list) == -1) {
 		return -1;
 	}
@@ -51,6 +56,7 @@ int list_add(struct list_t* list, struct entry_t* entry) {
 		return -1;
 	}
 
+	// Se a lista não tiver nodes, alocamos espaço e adicionamos a entry.
 	if (list->size == 0) {
 		list->head = (struct node_t*)malloc(sizeof(struct node_t));
 		if (list->head == NULL) {
@@ -62,6 +68,7 @@ int list_add(struct list_t* list, struct entry_t* entry) {
 		return 0;
 	}
 
+	// Se a list apenas tiver um node.
 	if (list->size == 1) {
 		int compare = entry_compare(list->head->entry, entry);
 		if (compare == 1) {
@@ -96,6 +103,7 @@ int list_add(struct list_t* list, struct entry_t* entry) {
 		}
 	}
 
+	// Se a lista tiver vários nodes?
 	struct node_t* current = list->head;
 	struct node_t* previous = NULL;
 	while (current != NULL) {
@@ -244,6 +252,9 @@ int list_free_keys(char** keys) {
 		key = keys[++index];
 	}
 	free(keys);
+	if (keys == NULL) {
+		return -1; // Falha ao libertar memória!!
+	}
 
 	return 0;
 }

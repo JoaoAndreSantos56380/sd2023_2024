@@ -212,3 +212,50 @@ int hash_code(char* key, int module) {
 	}
 	return sum % module;
 }
+
+struct entry_t **get_all_entries(struct table_t *table, int *num_entries) {
+	if (table == NULL || NULL) {
+        return NULL;
+    }
+
+	// Variável para contar o número total de entries
+    int total_entries = 0;
+    struct entry_t **all_entries = NULL;
+
+	// Obter todas as chaves
+	char **all_keys = table_get_keys(table);
+    if (all_keys == NULL) {
+        return NULL;
+    }
+
+	// Conta o número total de entries e aloca espaço para o array de pointers
+    for (int i = 0; all_keys[i] != NULL; i++) {
+        struct entry_t *entry = table_get(table, all_keys[i]);
+        if (entry == NULL) {
+            // Erro ao buscar o entry, libertar memória alocada anteriormente
+            for (int j = 0; j < total_entries; j++) {
+                entry_destroy(all_entries[j]);
+            }
+            free(all_entries);
+            free(all_keys);
+            return NULL;
+        }
+        total_entries++;
+        struct entry_t **new_all_entries = (struct entry_t **)realloc(all_entries, total_entries * sizeof(struct entry_t *));
+        if (new_all_entries == NULL) {
+            // Erro ao alocar memória, liberar memória alocada anteriormente
+            for (int j = 0; j < total_entries - 1; j++) {
+                entry_destroy(all_entries[j]);
+            }
+            free(all_entries);
+            free(all_keys);
+            return NULL;
+        }
+        all_entries = new_all_entries; // Garantir que estamos a usar o ponteiro correto, pois ao fazermos realloc podemos ficar com o ponteiro original ou com o novo.
+        all_entries[total_entries - 1] = entry; // Vai-se colocando no último elemento, pois vamos expandindo.
+    }
+
+    *num_entries = total_entries; // Atualizar as entries
+    free(all_keys); // Libertar espaço pois não vamos usar mais as keys
+    return all_entries;
+}
