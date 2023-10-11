@@ -5,7 +5,7 @@
 #include "client_stub.h"
 #include "client_stub-private.h"
 
-#define message_t MessageT
+#define message_t _MessageT
 
 /* Esta função lê os bytes do buffer um por um
 *  do servidor, devolvendo os bytes que foram lidos.
