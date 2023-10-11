@@ -62,7 +62,7 @@ struct  _MessageT
   ProtobufCMessage base;
   /*
    * Campos disponíveis na mensagem genérica (cada mensagem concreta, de
-   * pedido ou de resposta, usa apenas os campos que necessitar) 
+   * pedido ou de resposta, usa apenas os campos que necessitar)
    */
   MessageT__Opcode opcode;
   MessageT__CType c_type;
