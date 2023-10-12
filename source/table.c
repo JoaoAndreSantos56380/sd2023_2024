@@ -122,6 +122,26 @@ struct data_t* table_get(struct table_t* table, char* key) {
 	return data_dup(entry->value);
 }
 
+struct entry_t* table_get_entry(struct table_t* table, char* key) {
+	if (table == NULL) {
+		return NULL;
+	}
+	if (key == NULL) {
+		return NULL;
+	}
+
+	if (table->size == 0) {
+		return NULL;
+	}
+
+	int row = hash_code(key, table->rows);
+	struct entry_t* entry = list_get(table->lists[row], key);
+	if (entry == NULL) {
+		return NULL;
+	}
+	return entry_dup(entry);
+}
+
 int table_remove(struct table_t* table, char* key) {
 	if (table == NULL) {
 		return -1;
@@ -230,7 +250,7 @@ struct entry_t **get_all_entries(struct table_t *table, int *num_entries) {
 
 	// Conta o número total de entries e aloca espaço para o array de pointers
     for (int i = 0; all_keys[i] != NULL; i++) {
-        struct entry_t *entry = table_get(table, all_keys[i]);
+        struct entry_t *entry = table_get_entry(table, all_keys[i]);
         if (entry == NULL) {
             // Erro ao buscar o entry, libertar memória alocada anteriormente
             for (int j = 0; j < total_entries; j++) {
