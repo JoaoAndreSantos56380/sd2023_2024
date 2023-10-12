@@ -6,6 +6,7 @@
 #include "client_stub.h"
 #include "message-private.h"
 #include "network_client.h"
+#include "sdmessage.pb-c.h"
 
 /* Função para estabelecer uma associação entre o cliente e o servidor,
  * em que address_port é uma string no formato <hostname>:<port>.
@@ -18,9 +19,8 @@ struct rtable_t* rtable_connect(char* address_port) {
 	char* port = strdup(strtok(NULL, ":"));
 	struct rtable_t* rtable = (struct rtable_t*)malloc(sizeof(struct rtable_t));
 	rtable->server_address = hostname;
-	rtable->server_port = port;
+	rtable->server_port = atoi(port);
 	rtable->sockfd = -1;
-	// rtable->root = tree_create();
 	free(adrsport);
 	return network_connect(rtable) == -1 ? NULL : rtable;
 }
@@ -34,7 +34,7 @@ int rtable_disconnect(struct rtable_t* rtable) {
 		printf("Error closing connection.\n");
 	}
 	free(rtable->server_address);
-	free(rtable->server_port);
+	//free(rtable->server_port);
 	free(rtable);
 	printf("Closing\n");
 	return 0;
@@ -50,7 +50,8 @@ int rtable_put(struct rtable_t* rtable, struct entry_t* entry) {
 	request->opcode = MESSAGE_T__OPCODE__OP_PUT;
 	request->c_type = MESSAGE_T__C_TYPE__CT_ENTRY;
 	request->entry = (EntryT*)malloc(sizeof(EntryT));
-	message_t__entry__init(request->entry);
+	//message_t__entry__init(request->entry);
+	//message_t__init(request->entry);
 	request->entry->key = entry->key;
 	request->entry->value.len = entry->value->datasize;
 	request->entry->value.data = entry->value->data;
@@ -158,7 +159,7 @@ struct entry_t** rtable_get_table(struct rtable_t* rtable){
 	struct entry_t** entries = (struct entry_t**)malloc(sizeof(struct entry_t*) * (response->n_keys + 1));
 	int i;
 	for (i = 0; i < response->n_keys; i++) {
-		entries[i] = entry_dup(response->entries[i]);
+		entries[i] = entry_dup((struct entry_t*)response->entries[i]);
 	}
 	entries[i] = NULL;
 	message_t__free_unpacked(response, NULL);
