@@ -8,6 +8,7 @@
 #include "data.h"
 #include "entry.h"
 #include "table_client-private.h"
+#include "sdmessage.pb-c.h"
 
 #define PUT "put"
 #define GET "get"
@@ -24,7 +25,7 @@ int main(int argc, char const* argv[]) {
 		return -1;
 	}
 
-	struct rtable_t* rtable = rtable_connect(argv[1]);
+	struct rtable_t* rtable = rtable_connect((char*)argv[1]);
 	if (rtable == NULL) {
 		perror("could not connect client\n");
 		return -1;
@@ -38,17 +39,13 @@ int main(int argc, char const* argv[]) {
 			executePut(rtable, option);
 		} else if (commandIsGetKeys(option)) {
 			executeGetKeys(rtable);
-		} else if (commandIsGetValues(option)) {
-			executeGetValues(rtable);
 		} else if (commandIsGet(option)) {
 			executeGet(rtable, option);
 		} else if (commandIsDel(option)) {
 			executeDel(rtable, option);
 		} else if (commandIsSize(option)) {
 			executeSize(rtable);
-		} else if (commandIsHeight(option)) {
-			executeHeight(rtable);
-		} else if(commandIsGetTable){
+		} else if(commandIsGetTable(option)){
 			executeGetTable(rtable);
 		}
 	} while (strncmp(option, QUIT, strlen(QUIT)) != 0);
