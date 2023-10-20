@@ -104,7 +104,7 @@ void executePut(struct rtable_t* rtable, char* option) {
 	strtok(option, " ");
 	char* key = strdup(strtok(NULL, " "));
 	char* value = strdup(strtok(NULL, " "));
-	struct entry_t* entry = entry_create(key, data_create2(strlen(value), value));
+	struct entry_t* entry = entry_create(key, data_create(strlen(value), value));
 	if (rtable_put(rtable, entry) == -1) {
 		printf("\nput failed\n");
 		return;
@@ -152,16 +152,6 @@ void executeSize(struct rtable_t* rtable) {
 	printf("Size: %d\n", result);
 }
 
-void executeHeight(struct rtable_t* rtable) {
-	int result = rtable_height(rtable);
-	if (result == -1) {
-		printf("\nHeight failed\n");
-		return;
-	}
-	printf("\n #######Height successful####### \n");
-	printf("Height: %d\n", result);
-}
-
 void executeGetKeys(struct rtable_t* rtable) {
 	char** keys = rtable_get_keys(rtable);
 	if (keys == NULL) {
@@ -185,7 +175,7 @@ void executeGetKeys(struct rtable_t* rtable) {
 }
 
 void executeGetTable(struct rtable_t* rtable){
-	struct entry_t** entries = (struct entry_t**)rtable_get_values(rtable);
+	struct entry_t** entries = (struct entry_t**)rtable_get_table(rtable);
 	if (entries == NULL) {
 		printf("There was an error executing get_entries() on the server.\n");
 		return;
@@ -202,7 +192,7 @@ void executeGetTable(struct rtable_t* rtable){
 		printf("%s\n", (char*)entries[i]->key);
 		printf("%d\n", (int)entries[i]->value->datasize);
 		printf("%s\n", (char*)entries[i]->value->data);
-		data_destroy(entries[i]);
+		entry_destroy(entries[i]);
 		i++;
 	}
 	free(entries);

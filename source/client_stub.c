@@ -45,17 +45,19 @@ int rtable_disconnect(struct rtable_t* rtable) {
  * Devolve 0 (ok, em adição/substituição) ou -1 (problemas).
  */
 int rtable_put(struct rtable_t* rtable, struct entry_t* entry) {
-	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
+	//struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
+	MessageT* request = (MessageT*)malloc(sizeof(MessageT));
 	message_t__init(request);
 	request->opcode = MESSAGE_T__OPCODE__OP_PUT;
 	request->c_type = MESSAGE_T__C_TYPE__CT_ENTRY;
 	request->entry = (EntryT*)malloc(sizeof(EntryT));
 	//message_t__entry__init(request->entry);
 	//message_t__init(request->entry);
+	entry_t__init(request->entry);
 	request->entry->key = entry->key;
 	request->entry->value.len = entry->value->datasize;
 	request->entry->value.data = entry->value->data;
-	struct message_t* response = network_send_receive(rtable, request);
+	MessageT* response = network_send_receive(rtable, request);
 	free(request->entry);
 	free(request);
 	int result = (response->opcode == MESSAGE_T__OPCODE__OP_PUT + 1) ? 0 : -1;
