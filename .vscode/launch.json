@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Data",
+            "name": "server",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/binary/test_data",
-            "args": [],
+            "program": "${workspaceFolder}/binary/table_server",
+            "args": ["1337", "4"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
@@ -17,7 +17,7 @@
             "MIMode": "gdb",
             //"miDebuggerPath": "C:\MinGW\bin\gdb.exe",
             //"miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "Compile",
+            "preLaunchTask": "Compile_server",
             "setupCommands": [
                 {
                     "description": "Enable funcy printing to gdb",
@@ -37,11 +37,11 @@
             ]
         },
         {
-            "name": "entry",
+            "name": "client",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/binary/test_entry",
-            "args": [],
+            "program": "${workspaceFolder}/binary/table_client",
+            "args": ["127.0.0.1:1337"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
@@ -49,7 +49,7 @@
             "MIMode": "gdb",
             //"miDebuggerPath": "C:\MinGW\bin\gdb.exe",
             //"miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "Compile",
+            "preLaunchTask": "Compile_client",
             "setupCommands": [
                 {
                     "description": "Enable funcy printing to gdb",
@@ -67,102 +67,6 @@
                     "ignoreFailures": false
                 }
             ]
-        },
-        {
-            "name": "list",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/binary/test_list",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${fileDirname}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            //"miDebuggerPath": "C:\MinGW\bin\gdb.exe",
-            //"miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "Compile",
-            "setupCommands": [
-                {
-                    "description": "Enable funcy printing to gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "In this mode GDB will be attached to both processes after a call to fork() or vfork().",
-                    "text": "-gdb-set detach-on-fork on",
-                    "ignoreFailures": false
-                },
-                {
-                    "description": "The new process is debugged after a fork. The parent process runs unimpeded.",
-                    "text": "-gdb-set follow-fork-mode child",
-                    "ignoreFailures": false
-                }
-            ]
-        },
-        {
-            "name": "table",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/binary/test_table",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${fileDirname}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            //"miDebuggerPath": "C:\MinGW\bin\gdb.exe",
-            //"miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "Compile",
-            "setupCommands": [
-                {
-                    "description": "Enable funcy printing to gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "In this mode GDB will be attached to both processes after a call to fork() or vfork().",
-                    "text": "-gdb-set detach-on-fork on",
-                    "ignoreFailures": false
-                },
-                {
-                    "description": "The new process is debugged after a fork. The parent process runs unimpeded.",
-                    "text": "-gdb-set follow-fork-mode child",
-                    "ignoreFailures": false
-                }
-            ]
-        },
-        {
-            "name": "serial",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/binary/test_serialization",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${fileDirname}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            //"miDebuggerPath": "C:\MinGW\bin\gdb.exe",
-            //"miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "Compile",
-            "setupCommands": [
-                {
-                    "description": "Enable funcy printing to gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "In this mode GDB will be attached to both processes after a call to fork() or vfork().",
-                    "text": "-gdb-set detach-on-fork on",
-                    "ignoreFailures": false
-                },
-                {
-                    "description": "The new process is debugged after a fork. The parent process runs unimpeded.",
-                    "text": "-gdb-set follow-fork-mode child",
-                    "ignoreFailures": false
-                }
-            ]
-        },
+        }
     ]
 }
