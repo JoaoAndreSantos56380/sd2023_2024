@@ -1,17 +1,17 @@
 {
     "tasks": [
         {
-            "label": "Compile",
+            "label": "Compile_client",
             "type": "shell",
-            "command": "make",
+            "command": "make table_client",
             "problemMatcher": [
                 "$gcc"
             ]
         },
         {
-            "label": "CompileData",
+            "label": "Compile_server",
             "type": "shell",
-            "command": "make",
+            "command": "make table_server",
             "problemMatcher": [
                 "$gcc"
             ]
