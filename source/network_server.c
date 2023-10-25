@@ -13,14 +13,16 @@
 #include "message-private.h"
 #include "network_server.h"
 #include "table_skel.h"
-int listening_socket;
-extern struct table_t* table;
+//int listening_socket;
+//extern struct table_t* table; Estes dois estavam aqui como variáveis globais wtf
+
 /* Função para preparar uma socket de receção de pedidos de ligação
  * num determinado porto.
  * Retornar descritor do socket (OK) ou -1 (erro).
  */
 int network_server_init(short port) {
 	// socket info struct
+	int listening_socket;
 	struct sockaddr_in server_info = {0};
 	server_info.sin_family = AF_INET;
 	server_info.sin_port = htons(port);

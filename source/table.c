@@ -99,6 +99,9 @@ int table_put(struct table_t* table, char* key, struct data_t* value) {
 		table->size++;
 	}
 
+	// Atualiza a lista na estrutura table_t
+	table->lists[row] = list;
+
 	return 0;
 }
 
@@ -192,13 +195,15 @@ char** table_get_keys(struct table_t* table) {
 		struct list_t* list = table->lists[row];
 
 		char** listKeys = list_get_keys(list);
-		int listIndex = 0;
-		char* key = listKeys[listIndex];
-		while (key != NULL) {
-			char* key_copy = (char*)malloc(strlen(key) + 1);
-			strcpy(key_copy, key);
-			keys[keyIndex++] = key_copy;
-			key = listKeys[++listIndex];
+		if(listKeys != NULL) {
+			int listIndex = 0;
+			char* key = listKeys[listIndex];
+			while (key != NULL) {
+				char* key_copy = (char*)malloc(strlen(key) + 1);
+				strcpy(key_copy, key);
+				keys[keyIndex++] = key_copy;
+				key = listKeys[++listIndex];
+			}
 		}
 		list_free_keys(listKeys);
 	}
