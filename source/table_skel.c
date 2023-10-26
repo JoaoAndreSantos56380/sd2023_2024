@@ -189,8 +189,8 @@ int invoke(MessageT* msg, struct table_t* table) {
 			// Atualizar a estrutura MessageT com o resultado
 			msg->opcode = MESSAGE_T__OPCODE__OP_GETTABLE + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_TABLE;
-			msg->entries = (EntryT**)all_entries;
-			msg->n_entries = num_entries;
+			msg->entries = (EntryT**)all_entries; // com este não dá erro de compilação
+			//msg->n_entries = num_entries;
 
 			return 0;
 			break;

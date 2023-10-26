@@ -39,15 +39,16 @@ int main(int argc, char const* argv[]) {
 			executePut(rtable, option);
 		} else if (commandIsGetKeys(option)) {
 			executeGetKeys(rtable);
+		} else if (commandIsGetTable(option)) {
+			executeGetTable(rtable);
 		} else if (commandIsGet(option)) {
 			executeGet(rtable, option);
 		} else if (commandIsDel(option)) {
 			executeDel(rtable, option);
 		} else if (commandIsSize(option)) {
 			executeSize(rtable);
-		} else if(commandIsGetTable(option)){
-			executeGetTable(rtable);
 		}
+
 	} while (strncmp(option, QUIT, strlen(QUIT)) != 0);
 	rtable_disconnect(rtable);
 	printf("Client exiting. Bye.\n");
@@ -62,7 +63,7 @@ void showMenu() {
 	printf("size\n");
 	printf("height\n");
 	printf("getkeys\n");
-	printf("getvalues\n");
+	printf("gettable\n");
 	printf("quit\n");
 	printf("Option: ");
 }

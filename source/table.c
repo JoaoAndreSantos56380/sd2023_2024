@@ -239,7 +239,7 @@ int hash_code(char* key, int module) {
 }
 
 struct entry_t **get_all_entries(struct table_t *table, int *num_entries) {
-	if (table == NULL || NULL) {
+	if (table == NULL) {
         return NULL;
     }
 
