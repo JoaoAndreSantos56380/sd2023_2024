@@ -8,10 +8,7 @@
 #include "network_client.h"
 #include "sdmessage.pb-c.h"
 
-/* Função para estabelecer uma associação entre o cliente e o servidor,
- * em que address_port é uma string no formato <hostname>:<port>.
- * Retorna NULL em caso de erro.
- */
+
 struct rtable_t* rtable_connect(char* address_port) {
 	char* adrsport = (char*)malloc(strlen(address_port) + 1);
 	strcpy(adrsport, address_port);
@@ -25,34 +22,24 @@ struct rtable_t* rtable_connect(char* address_port) {
 	return network_connect(rtable) == -1 ? NULL : rtable;
 }
 
-/* Termina a associação entre o cliente e o servidor, fechando a
- * ligação com o servidor e libertando toda a memória local.
- * Retorna 0 se tudo correr bem e -1 em caso de erro.
- */
+
 int rtable_disconnect(struct rtable_t* rtable) {
 	if (network_close(rtable) == -1) {
 		printf("Error closing connection.\n");
 	}
 	free(rtable->server_address);
-	//free(rtable->server_port);
 	free(rtable);
 	printf("Closing\n");
 	return 0;
 }
 
-/* Função para adicionar um elemento na árvore.
- * Se a key já existe, vai substituir essa entrada pelos novos dados.
- * Devolve 0 (ok, em adição/substituição) ou -1 (problemas).
- */
+
 int rtable_put(struct rtable_t* rtable, struct entry_t* entry) {
-	//struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
 	MessageT* request = (MessageT*)malloc(sizeof(MessageT));
 	message_t__init(request);
 	request->opcode = MESSAGE_T__OPCODE__OP_PUT;
 	request->c_type = MESSAGE_T__C_TYPE__CT_ENTRY;
 	request->entry = (EntryT*)malloc(sizeof(EntryT));
-	//message_t__entry__init(request->entry);
-	//message_t__init(request->entry);
 	entry_t__init(request->entry);
 	request->entry->key = entry->key;
 	request->entry->value.len = entry->value->datasize;
@@ -65,9 +52,7 @@ int rtable_put(struct rtable_t* rtable, struct entry_t* entry) {
 	return result;
 }
 
-/* Função para obter um elemento da árvore.
- * Em caso de erro, devolve NULL.
- */
+
 struct data_t* rtable_get(struct rtable_t* rtable, char* key) {
 	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
 	message_t__init(request);
@@ -87,10 +72,7 @@ struct data_t* rtable_get(struct rtable_t* rtable, char* key) {
 	return data;
 }
 
-/* Função para remover um elemento da árvore. Vai libertar
- * toda a memoria alocada na respetiva operação rtable_put().
- * Devolve: 0 (ok), -1 (key not found ou problemas).
- */
+
 int rtable_del(struct rtable_t* rtable, char* key) {
 	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
 	message_t__init(request);
@@ -104,8 +86,7 @@ int rtable_del(struct rtable_t* rtable, char* key) {
 	return result;
 }
 
-/* Devolve o número de elementos contidos na árvore.
- */
+
 int rtable_size(struct rtable_t* rtable) {
 	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
 	message_t__init(request);
@@ -118,9 +99,7 @@ int rtable_size(struct rtable_t* rtable) {
 	return result;
 }
 
-/* Devolve um array de char* com a cópia de todas as keys da árvore,
- * colocando um último elemento a NULL.
- */
+
 char** rtable_get_keys(struct rtable_t* rtable) {
 	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
 	message_t__init(request);
@@ -143,9 +122,7 @@ char** rtable_get_keys(struct rtable_t* rtable) {
 	return keys;
 }
 
-/* Retorna um array de entry_t* com todo o conteúdo da tabela, colocando
- * um último elemento do array a NULL. Retorna NULL em caso de erro.
- */
+
 struct entry_t** rtable_get_table(struct rtable_t* rtable){
 	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
 	message_t__init(request);
@@ -162,21 +139,16 @@ struct entry_t** rtable_get_table(struct rtable_t* rtable){
 	int i;
 	struct entry_t* entry = malloc(sizeof(struct entry_t));
 	entry->key = malloc(sizeof(char*));
-	//struct data_t* data = malloc(sizeof(struct data_t));
 	for (i = 0; i < response->n_entries; i++) {
 		strcpy(entry->key, response->entries[i]->key);
-		entry->value = data_create(response->entries[i]->value.len, response->entries[i]->value.data);  // malloc(sizeof(struct data_t));
-		//entry->value->datasize = response->entries[i]->value.len;
-		//memcpy(entry->value->data, response->entries[i]->value.data, response->entries[i]->value.len);
+		entry->value = data_create(response->entries[i]->value.len, response->entries[i]->value.data);
 		entries[i] = entry_dup(entry);
 	}
 	entries[i] = NULL;
-	//message_t__free_unpacked(response, NULL);
 	return entries;
 }
 
-/* Liberta a memória alocada por rtable_get_table().
- */
+
 void rtable_free_entries(struct entry_t** entries){
 	if(entries != NULL){
 		int i = 0;

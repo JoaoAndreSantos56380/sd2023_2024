@@ -213,7 +213,6 @@ char** table_get_keys(struct table_t* table) {
 }
 
 int table_free_keys(char** keys) {
-	//return list_free_keys(keys); POR ACASO o codigo é o mesmo por isso podemos chamar esta funcao
 	if (keys == NULL) {
 		return -1;
 	}

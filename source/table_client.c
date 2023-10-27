@@ -231,5 +231,3 @@ void executeGetTable(struct rtable_t* rtable){
 	}
 	free(entries);
 }
-
-// tentar imprimir o pedido do cliente

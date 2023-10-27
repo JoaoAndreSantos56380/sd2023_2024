@@ -4,13 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-/* Inicia o skeleton da tabela.
- * O main() do servidor deve chamar esta função antes de poder usar a
- * função invoke(). O parâmetro n_lists define o número de listas a
- * serem usadas pela tabela mantida no servidor.
- * Retorna a tabela criada ou NULL em caso de erro.
- */
-//struct table_t* table;
+
 
 struct table_t* table_skel_init(int n_lists) {
 	// Inicializar a tabela com n_lists
@@ -19,10 +13,7 @@ struct table_t* table_skel_init(int n_lists) {
 	return table;
 }
 
-/* Liberta toda a memória ocupada pela tabela e todos os recursos
- * e outros recursos usados pelo skeleton.
- * Retorna 0 (OK) ou -1 em caso de erro.
- */
+
 int table_skel_destroy(struct table_t* table) {
 	if (table == NULL) {
 		// A tabela não foi inicializada, não há nada para destruir!
@@ -35,10 +26,7 @@ int table_skel_destroy(struct table_t* table) {
 	return 0;
 }
 
-/* Executa na tabela table a operação indicada pelo opcode contido em msg
- * e utiliza a mesma estrutura MessageT para devolver o resultado.
- * Retorna 0 (OK) ou -1 em caso de erro.
- */
+
 int invoke(MessageT* msg, struct table_t* table) {
 	if (msg == NULL || table == NULL) {
 		// A msg ou a table são inválidas!
@@ -58,7 +46,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 			}
 			// Fazer a operação na tabela
 			struct data_t* data = data_create(msg->entry->value.len, msg->entry->value.data);
-			// int result = table_put(table, msg->entry->key, (struct data_t*) msg->entry->value.data);
+
 			int result = table_put(table, msg->entry->key, data);
 
 			// Erro ao colocar na table
@@ -84,7 +72,6 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			// Fazer a operação na tabela
 			struct data_t* result_data = table_get(table, msg->key);
-			//printf("%s", result_data->data);
 			// Erro ao buscar da table
 			if (result_data == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
@@ -165,11 +152,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 			break;
 
 		case MESSAGE_T__OPCODE__OP_GETTABLE:
-			// Fazer a operação na tabela
-			// struct table_t *result_table = table_get_table(table);
 
-			// Erro ao buscar a table
-			// if(result_table == NULL) {
 			if (table == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
@@ -178,7 +161,6 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			// Buscar as entries
 			int num_entries = 0;
-			// struct entry_t **all_entries = get_all_entries(result_table, &num_entries);
 			struct entry_t** all_entries = get_all_entries(table, &num_entries);
 
 			// Erro ao buscar as entries
@@ -206,12 +188,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 			}
 
 			msg->entries[num_entries] = NULL;
-			//memcpy(msg->entries, all_entries, sizeof(EntryT*) * num_entries + 1);
-			/* for (int i = 0; i < num_entries; i++) {
-				msg->entries[i]->key = malloc(sizeof(char*));
-				strcpy(msg->entries[i]->key, all_entries[i]->key);
-			} */
-			//msg->entries = (EntryT**)all_entries;	 // com este não dá erro de compilação
+
 			msg->n_entries = num_entries;
 
 			return 0;

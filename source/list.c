@@ -87,7 +87,6 @@ int list_add(struct list_t* list, struct entry_t* entry) { //Esta função pode 
 				return -1;
 			}
 			free(entry);
-			//list->size = 2;
 			return 1;
 		}
 		if (compare == -1) {
