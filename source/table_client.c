@@ -22,6 +22,7 @@
 int main(int argc, char const* argv[]) {
 	if (argc < 2) {
 		printf("Usage: ./table_client <server>:<port>\n");
+		printf("Example: ./table_client 127.0.0.1:12345\n");
 		return -1;
 	}
 
@@ -47,6 +48,8 @@ int main(int argc, char const* argv[]) {
 			executeDel(rtable, option);
 		} else if (commandIsSize(option)) {
 			executeSize(rtable);
+		} else {
+			printf("Please input a valid command.\n");
 		}
 
 	} while (strncmp(option, QUIT, strlen(QUIT)) != 0);
@@ -61,7 +64,6 @@ void showMenu() {
 	printf("get <key>\n");
 	printf("del <key>\n");
 	printf("size\n");
-	printf("height\n");
 	printf("getkeys\n");
 	printf("gettable\n");
 	printf("quit\n");
@@ -98,9 +100,23 @@ int commandIsGetKeys(char* option) {
 }
 
 void executePut(struct rtable_t* rtable, char* option) {
-	strtok(option, " ");
-	char* key = strdup(strtok(NULL, " "));
-	char* value = strdup(strtok(NULL, " "));
+	char* token = strtok(option, " ");
+	char* key = NULL;
+	char* value = NULL;
+
+	token = strtok(NULL, " ");
+	if (token) { // verificar se o put tem os argumentos ao ser chamado
+		key = strdup(token);
+		token = strtok(NULL, " ");
+		if (token) {
+        	value = strdup(token);
+    	}
+	}
+	if (key == NULL || value == NULL) {
+		printf("The inserted 'put' command is wrong.\n");
+		printf("Example: put 1 abc\n");
+		return; // inputs errados => sair da função
+	}
 	struct entry_t* entry = entry_create(key, data_create(strlen(value), value));
 	if (rtable_put(rtable, entry) == -1) {
 		printf("\nput failed\n");
@@ -111,8 +127,18 @@ void executePut(struct rtable_t* rtable, char* option) {
 }
 
 void executeGet(struct rtable_t* rtable, char* option) {
-	strtok(option, " ");
-	char* key = strdup(strtok(NULL, " "));
+	char* token = strtok(option, " ");
+	char* key = NULL;
+
+	token = strtok(NULL, " ");
+	if (token) { // verificar se o get tem o argumento ao ser chamado
+		key = strdup(token);
+	}
+	if (key == NULL) {
+		printf("The inserted 'get' command is wrong.\n");
+		printf("Example: get 1\n");
+		return; // inputs errados => sair da função
+	}
 	struct data_t* value = rtable_get(rtable, key);
 	free(key);
 	if (value == NULL) {
@@ -128,8 +154,18 @@ void executeGet(struct rtable_t* rtable, char* option) {
 }
 
 void executeDel(struct rtable_t* rtable, char* option) {
-	strtok(option, " ");
-	char* key = strdup(strtok(NULL, " "));
+	char* token = strtok(option, " ");
+	char* key = NULL;
+
+	token = strtok(NULL, " ");
+	if (token) { // verificar se o get tem o argumento ao ser chamado
+		key = strdup(token);
+	}
+	if(key == NULL) {
+		printf("The inserted 'del' command is wrong.\n");
+		printf("Example: del 1\n");
+		return; // inputs errados => sair da função
+	}
 	int result = rtable_del(rtable, key);
 	if (result == -1) {
 		printf("\nDel failed\n");
@@ -174,7 +210,7 @@ void executeGetKeys(struct rtable_t* rtable) {
 void executeGetTable(struct rtable_t* rtable){
 	struct entry_t** entries = (struct entry_t**)rtable_get_table(rtable);
 	if (entries == NULL) {
-		printf("There was an error executing get_entries() on the server or there are not entries.\n");
+		printf("There was an error executing get_entries() on the server or there are no entries.\n");
 		return;
 	}
 

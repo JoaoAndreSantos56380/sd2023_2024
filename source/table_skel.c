@@ -112,7 +112,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 			int del_result = table_remove(table, msg->key);
 
 			// Erro ao apagar da table
-			if (del_result == -1) {
+			if (del_result == -1 || del_result == 1) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
 				return -1;
