@@ -89,10 +89,6 @@ int commandIsSize(char* option) {
 	return strncmp(option, SIZE, strlen(SIZE)) == 0;
 }
 
-int commandIsHeight(char* option) {
-	return strncmp(option, HEIGHT, strlen(HEIGHT)) == 0;
-}
-
 int commandIsGetTable(char* option) {
 	return strncmp(option, GETTABLE, strlen(GETTABLE)) == 0;
 }
@@ -156,7 +152,7 @@ void executeSize(struct rtable_t* rtable) {
 void executeGetKeys(struct rtable_t* rtable) {
 	char** keys = rtable_get_keys(rtable);
 	if (keys == NULL) {
-		printf("There was an error executing get_keys() on the server.\n");
+		printf("There was an error executing get_keys() on the server or there are no keys.\n");
 		return;
 	}
 
@@ -178,7 +174,7 @@ void executeGetKeys(struct rtable_t* rtable) {
 void executeGetTable(struct rtable_t* rtable){
 	struct entry_t** entries = (struct entry_t**)rtable_get_table(rtable);
 	if (entries == NULL) {
-		printf("There was an error executing get_entries() on the server.\n");
+		printf("There was an error executing get_entries() on the server or there are not entries.\n");
 		return;
 	}
 

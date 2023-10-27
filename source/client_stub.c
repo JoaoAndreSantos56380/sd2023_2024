@@ -160,7 +160,9 @@ struct entry_t** rtable_get_table(struct rtable_t* rtable){
 
 	struct entry_t** entries = (struct entry_t**)malloc(sizeof(struct entry_t*) * (response->n_keys + 1));
 	int i;
-	for (i = 0; i < response->n_keys; i++) {
+	struct entry_t* entry = malloc(sizeof(struct entry_t));
+	for (i = 0; entries[i] != NULL/* i < response->n_keys */; i++) {
+		
 		entries[i] = entry_dup((struct entry_t*)response->entries[i]);
 	}
 	entries[i] = NULL;

@@ -1,7 +1,9 @@
 #include "sdmessage.pb-c.h"
 #include "table-private.h"
 #include "table.h"
-
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 /* Inicia o skeleton da tabela.
  * O main() do servidor deve chamar esta função antes de poder usar a
  * função invoke(). O parâmetro n_lists define o número de listas a
@@ -189,8 +191,25 @@ int invoke(MessageT* msg, struct table_t* table) {
 			// Atualizar a estrutura MessageT com o resultado
 			msg->opcode = MESSAGE_T__OPCODE__OP_GETTABLE + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_TABLE;
-			msg->entries = (EntryT**)all_entries; // com este não dá erro de compilação
-			//msg->n_entries = num_entries;
+			msg->entries = malloc(sizeof(EntryT) * (num_entries + 1));
+			for (int i = 0; i < num_entries; i++) {
+				msg->entries[i] = malloc(sizeof(EntryT));
+				entry_t__init(msg->entries[i]);
+				struct entry_t* dup = entry_dup(all_entries[i]);
+				printf("%s\n", dup->key);
+				printf("%s\n", (char*)dup->value->data);
+				msg->entries[i]->key = malloc(sizeof(char*));
+				strcpy(msg->entries[i]->key, all_entries[i]->key);
+				memcpy(&msg->entries[i]->value, dup->value, sizeof(EntryT));
+			}
+
+			//memcpy(msg->entries, all_entries, sizeof(EntryT*) * num_entries + 1);
+			/* for (int i = 0; i < num_entries; i++) {
+				msg->entries[i]->key = malloc(sizeof(char*));
+				strcpy(msg->entries[i]->key, all_entries[i]->key);
+			} */
+			//msg->entries = (EntryT**)all_entries;	 // com este não dá erro de compilação
+			msg->n_entries = num_entries;
 
 			return 0;
 			break;
