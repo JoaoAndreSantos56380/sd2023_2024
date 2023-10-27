@@ -279,6 +279,11 @@ struct entry_t **get_all_entries(struct table_t *table, int *num_entries) {
         }
         all_entries = new_all_entries; // Garantir que estamos a usar o ponteiro correto, pois ao fazermos realloc podemos ficar com o ponteiro original ou com o novo.
         all_entries[total_entries - 1] = entry; // Vai-se colocando no último elemento, pois vamos expandindo.
+
+		for (int i = 0; i < total_entries; i++) {
+			printf("key:%s, valuesize:%d, valuedata:%s\n", (char*)(all_entries[i]->key), all_entries[i]->value->datasize, all_entries[i]->value->data);
+		}
+		printf("\n");
     }
 
     *num_entries = total_entries; // Atualizar as entries

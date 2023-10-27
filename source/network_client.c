@@ -101,6 +101,7 @@ MessageT* network_send_receive(struct rtable_t* rtable, MessageT* msg) {
 		close(sockfd);
 		return NULL;
 	}; */
+	buffer = (char*)realloc(buffer, 1024);
 	nbytes = read_all(sockfd, &buffer, 1024);
 
 	// str_de_serialized = message_t__unpack(NULL, nbytes, (uint8_t*)str_serialized);
