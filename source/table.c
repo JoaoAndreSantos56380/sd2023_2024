@@ -202,6 +202,7 @@ char** table_get_keys(struct table_t* table) {
 				char* key_copy = (char*)malloc(strlen(key) + 1);
 				strcpy(key_copy, key);
 				keys[keyIndex++] = key_copy;
+				printf("key[%d]:%s\n", keyIndex, keys[keyIndex-1]);
 				key = listKeys[++listIndex];
 			}
 		}
@@ -269,7 +270,7 @@ struct entry_t **get_all_entries(struct table_t *table, int *num_entries) {
         struct entry_t **new_all_entries = (struct entry_t **)realloc(all_entries, total_entries * sizeof(struct entry_t *));
         if (new_all_entries == NULL) {
             // Erro ao alocar memória, liberar memória alocada anteriormente
-            for (int j = 0; j < total_entries - 1; j++) {
+            for (int j = 0; j < total_entries; j++) {
                 entry_destroy(all_entries[j]);
             }
             free(all_entries);

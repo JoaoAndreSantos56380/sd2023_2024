@@ -203,6 +203,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 				memcpy(&msg->entries[i]->value, dup->value, sizeof(EntryT));
 			}
 
+			msg->entries[num_entries] = NULL;
 			//memcpy(msg->entries, all_entries, sizeof(EntryT*) * num_entries + 1);
 			/* for (int i = 0; i < num_entries; i++) {
 				msg->entries[i]->key = malloc(sizeof(char*));

@@ -186,11 +186,12 @@ void executeGetTable(struct rtable_t* rtable){
 	printf("\nentries: \n");
 	int i = 0;
 	while (entries[i] != NULL) {
-		printf("%s\n", (char*)entries[i]->key);
-		printf("%d\n", (int)entries[i]->value->datasize);
-		printf("%s\n", (char*)entries[i]->value->data);
+		printf("key:%s\n", (char*)entries[i]->key);
+		printf("datasize:%d\n", (int)entries[i]->value->datasize);
+		printf("data:%s\n", (char*)entries[i]->value->data);
 		entry_destroy(entries[i]);
 		i++;
+		printf("\n");
 	}
 	free(entries);
 }

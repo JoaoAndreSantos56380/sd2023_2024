@@ -158,15 +158,20 @@ struct entry_t** rtable_get_table(struct rtable_t* rtable){
 		return NULL;
 	}
 
-	struct entry_t** entries = (struct entry_t**)malloc(sizeof(struct entry_t*) * (response->n_keys + 1));
+	struct entry_t** entries = (struct entry_t**)malloc(sizeof(struct entry_t*) * (response->n_entries + 1));
 	int i;
 	struct entry_t* entry = malloc(sizeof(struct entry_t));
-	for (i = 0; entries[i] != NULL/* i < response->n_keys */; i++) {
-		
-		entries[i] = entry_dup((struct entry_t*)response->entries[i]);
+	entry->key = malloc(sizeof(char*));
+	//struct data_t* data = malloc(sizeof(struct data_t));
+	for (i = 0; i < response->n_entries; i++) {
+		strcpy(entry->key, response->entries[i]->key);
+		entry->value = data_create(response->entries[i]->value.len, response->entries[i]->value.data);  // malloc(sizeof(struct data_t));
+		//entry->value->datasize = response->entries[i]->value.len;
+		//memcpy(entry->value->data, response->entries[i]->value.data, response->entries[i]->value.len);
+		entries[i] = entry_dup(entry);
 	}
 	entries[i] = NULL;
-	message_t__free_unpacked(response, NULL);
+	//message_t__free_unpacked(response, NULL);
 	return entries;
 }
 
