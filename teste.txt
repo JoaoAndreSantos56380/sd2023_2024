@@ -1,0 +1,18 @@
+put a 1
+get a 
+put a 2
+get a
+del a
+put a 1
+size
+put b 2
+put c 3
+getkeys
+del c
+getkeys
+put joao andre
+put cris ronaldo
+del cris
+size
+gettable
+quit
