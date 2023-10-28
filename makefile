@@ -19,8 +19,6 @@ EXECS = $(BIN_DIR)/table-server $(BIN_DIR)/table-client
 
 # Source files and object files
 
-make: $(EXECS)
-
 all: libtable table-server table-client
 
 run:
