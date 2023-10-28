@@ -15,14 +15,13 @@ CC = gcc
 
 CFLAGS = -Wall -g -I $(INC_DIR)
 
-EXECS = $(BIN_DIR)/table_client #$(BIN_DIR)/table_server #$(BIN_DIR)/test_data $(BIN_DIR)/test_entry $(BIN_DIR)/test_list $(BIN_DIR)/test_table $(BIN_DIR)/test_serialization
+EXECS = $(BIN_DIR)/table-server $(BIN_DIR)/table-client
 
 # Source files and object files
 
-
 make: $(EXECS)
 
-all: libtable table_client #table_server
+all: libtable table-server table-client
 
 run:
 	$(BIN_DIR)/test_data
@@ -46,7 +45,7 @@ $(BIN_DIR)/test_serialization: $(OBJ_DIR)/test_serialization.o $(OBJ_DIR)/entry.
 $(BIN_DIR)/test_table: $(OBJ_DIR)/test_table.o $(OBJ_DIR)/table.o $(OBJ_DIR)/list.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/data.o
 	$(CC) $^ -o $@
 
-$(BIN_DIR)/table_client: $(OBJ_DIR)/table_client.o $(LIB_DIR)/libtable.a $(OBJ_DIR)/client_stub.o
+$(BIN_DIR)/table_client: $(OBJ_DIR)/table_client.o $(LIB_DIR)/libtable.a $(OBJ_DIR)/client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o
 	$(CC) $^ -o $@
 
 $(LIB_DIR)/libtable.a: $(OBJ_DIR)/data.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/list.o $(OBJ_DIR)/table.o
@@ -92,22 +91,23 @@ table_client.o:
 table_skel.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/table_skel.c -o $(OBJ_DIR)/table_skel.o
 
-table_server: libtable sdmessage.pb-c.o network_server.o table_skel.o message-private.o sdmessage.pb-c.o
-	$(CC) $(CFLAGS) $(SRC_DIR)/table_server.c -o $(BIN_DIR)/table_server $(OBJ_DIR)/network_server.o $(OBJ_DIR)/table_skel.o $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
+table-server: libtable sdmessage.pb-c.o network_server.o table_skel.o message-private.o sdmessage.pb-c.o
+	$(CC) $(CFLAGS) $(SRC_DIR)/table_server.c -o $(BIN_DIR)/table-server $(OBJ_DIR)/network_server.o $(OBJ_DIR)/table_skel.o $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
+
+server_run: table-server
+	./$(BIN_DIR)/table-server 1337 4
 
 libtable: data.o entry.o list.o table.o
 	ar -rcs $(LIB_DIR)/libtable.a $(OBJ_DIR)/data.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/list.o $(OBJ_DIR)/table.o
 
-table_client: libtable client_stub.o sdmessage.pb-c.o message-private.o network_client.o
-	$(CC) $(CFLAGS) $(SRC_DIR)/table_client.c -o $(BIN_DIR)/table_client $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/network_client.o $(OBJ_DIR)/client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
+table-client: libtable client_stub.o sdmessage.pb-c.o message-private.o network_client.o
+	$(CC) $(CFLAGS) $(SRC_DIR)/table_client.c -o $(BIN_DIR)/table-client $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/network_client.o $(OBJ_DIR)/client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
 
-client_run: table_client
-	./$(BINDIR)/table_client 127.0.0.1:1337
+client_run: table-client
+	./$(BIN_DIR)/table-client 127.0.0.1:1337
 
 cclient_valgrind: tree_client
 	valgrind --leak-check=full --track-origins=yes $(BINDIR)/tree_client 127.0.0.1:1337 < ./tests/del01.txt
-
-
 
 data.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/data.c -o $(OBJ_DIR)/data.o
