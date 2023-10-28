@@ -25,8 +25,8 @@
 
 int main(int argc, char const* argv[]) {
 	if (argc < 2) {
-		printf("Usage: ./table_client <server>:<port>\n");
-		printf("Example: ./table_client 127.0.0.1:12345\n");
+		printf("Usage: ./table-client <server>:<port>\n");
+		printf("Example: ./table-client 127.0.0.1:12345\n");
 		return -1;
 	}
 

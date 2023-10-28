@@ -15,8 +15,8 @@ int main(int argc, char **argv) {
 
     // verifica os argumentos passados
     if (argc != 3) {
-        printf("Usage: ./table_server <port> <n_lists>\n");
-        printf("Example: ./table_server 12345 3\n");
+        printf("Usage: ./table-server <port> <n_lists>\n");
+        printf("Example: ./table-server 12345 3\n");
         return -1;
     }
 
