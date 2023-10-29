@@ -48,7 +48,9 @@ int read_all(int sock, char** buf_ptr, int read_n_bytes) {
 			*buf_ptr = (char*)realloc(*buf_ptr, buffer_size);
 		}
 		total_bytes_read += bytes_read;
+		if(total_bytes_read == read_n_bytes){
+			return total_bytes_read;
+		}
 	} while (fullBuffer);
 	return total_bytes_read;
 }
-
