@@ -168,8 +168,6 @@ int invoke(MessageT* msg, struct table_t* table) {
 				msg->entries[i] = malloc(sizeof(EntryT));
 				entry_t__init(msg->entries[i]);
 				struct entry_t* dup = entry_dup(all_entries[i]);
-				/* 				printf("%s\n", dup->key);
-								printf("%s\n", (char*)dup->value->data); */
 				msg->entries[i]->key = malloc(sizeof(char*));
 				strcpy(msg->entries[i]->key, all_entries[i]->key);
 				msg->entries[i]->value.len = dup->value->datasize;

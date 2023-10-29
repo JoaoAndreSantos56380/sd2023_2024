@@ -200,13 +200,16 @@ char** table_get_keys(struct table_t* table) {
 			int listIndex = 0;
 			char* key = listKeys[listIndex];
 			while (key != NULL) {
-				char* key_copy = (char*)malloc(strlen(key) + 1);
-				strcpy(key_copy, key);
-				char* key_copy_dup = strdup(key_copy);
-				keys[keyIndex++] = key_copy_dup;
-				printf("key[%d]:%s\n", keyIndex, keys[keyIndex-1]);
+				//char* key_copy = (char*)malloc(strlen(key) + 1);
+				//strcpy(key_copy, key);
+				//char* key_copy_dup = strdup(key_copy);
+				//keys[keyIndex++] = key_copy_dup;
+				keys[keyIndex] = (char*) malloc(strlen(key));
+				strcpy(keys[keyIndex], key);
+				keyIndex++;
+				//printf("key[%d]:%s\n", keyIndex, keys[keyIndex]);
 				key = listKeys[++listIndex];
-				free(key_copy);
+				//free(key_copy);
 				//free(key_copy_dup);
 			}
 		}
@@ -289,6 +292,9 @@ struct entry_t **get_all_entries(struct table_t *table, int *num_entries) {
     }
 
     *num_entries = total_entries; // Atualizar as entries
-    free(all_keys); // Libertar espaço pois não vamos usar mais as keys
+	 for (int i = 0; i < total_entries; i++) {
+		 free(all_keys[i]);
+	 }
+	 free(all_keys); // Libertar espaço pois não vamos usar mais as keys
     return all_entries;
 }
