@@ -66,7 +66,8 @@ MessageT* network_send_receive(struct rtable_t* rtable, MessageT* msg) {
 	// Send msg size
 	short value = (short)size_msg;
 	short htons_value = htons(value);
-	int send_result = send(sockfd, &htons_value, sizeof(short), 0);
+	// int send_result = send(sockfd, &htons_value, sizeof(short), 0);
+	int send_result = write(sockfd, &htons_value, sizeof(short));
 	if (send_result == -1) {
 		perror("send error");
 		free(buffer);
@@ -84,7 +85,8 @@ MessageT* network_send_receive(struct rtable_t* rtable, MessageT* msg) {
 
 	// Receive response size
 	short num;
-	int recv_result = recv(sockfd, &num, sizeof(short), 0);
+	// int recv_result = recv(sockfd, &num, sizeof(short), 0);
+	int recv_result = read(sockfd, &num, sizeof(short));
 	if (recv_result == -1) {
 		perror("recv error");
 		free(buffer);

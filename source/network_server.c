@@ -78,7 +78,8 @@ int network_main_loop(int listening_socket, struct table_t* table) {
 struct message_t* network_receive(int client_socket) {
 	// Receive size
 	short num;
-	int recv_result = recv(client_socket, &num, sizeof(short), 0);
+	// int recv_result = recv(client_socket, &num, sizeof(short), 0);
+	int recv_result = read(client_socket, &num, sizeof(short));
 	if (recv_result == -1) {
 		perror("recv error");
 		return NULL;
@@ -99,7 +100,8 @@ int network_send(int client_socket, struct message_t* msg) {
 	// Send size
 	short num = (short)message_t__get_packed_size(msg);
 	short num_htons = htons(num);
-	int send_result = send(client_socket, &num_htons, sizeof(short), 0);
+	// int send_result = send(client_socket, &num_htons, sizeof(short), 0);
+	int send_result = write(client_socket, &num_htons, sizeof(short));
 	if (send_result == -1) {
 		perror("send error");
 		return -1;
