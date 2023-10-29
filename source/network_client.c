@@ -59,6 +59,9 @@ MessageT* network_send_receive(struct rtable_t* rtable, MessageT* msg) {
 	int nbytes;
 	int size_msg = message_t__get_packed_size(msg);
 	char* buffer = (char*)malloc(size_msg);
+	if (buffer == NULL) {
+		return NULL;
+	}
 	message_t__pack(msg, (uint8_t*)buffer);
 	// Send msg size
 	short value = (short)size_msg;
