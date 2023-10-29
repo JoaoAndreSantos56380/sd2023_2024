@@ -16,7 +16,7 @@ int commandIsDel(char* option);
 
 int commandIsSize(char* option);
 
-int commandIsHeight(char* option);
+int commandIsQuit(char* option);
 
 int commandIsGetTable(char* option);
 

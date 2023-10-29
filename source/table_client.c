@@ -17,9 +17,8 @@
 #define PUT "put"
 #define GET "get"
 #define DEL "del"
-#define QUIT "quit"
 #define SIZE "size"
-#define HEIGHT "height"
+#define QUIT "quit"
 #define GET_KEYS "getkeys"
 #define GETTABLE "gettable"
 
@@ -52,7 +51,7 @@ int main(int argc, char const* argv[]) {
 			executeDel(rtable, option);
 		} else if (commandIsSize(option)) {
 			executeSize(rtable);
-		} else {
+		} else if (!commandIsQuit(option)) {
 			printf("Please input a valid command.\n");
 		}
 
@@ -93,6 +92,10 @@ int commandIsDel(char* option) {
 
 int commandIsSize(char* option) {
 	return strncmp(option, SIZE, strlen(SIZE)) == 0;
+}
+
+int commandIsQuit(char* option) {
+	return strncmp(option, QUIT, strlen(QUIT)) == 0;
 }
 
 int commandIsGetTable(char* option) {
