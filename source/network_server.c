@@ -77,25 +77,52 @@ int network_main_loop(int listening_socket, struct table_t* table) {
 	return 0;
 }
 
-
 struct message_t* network_receive(int client_socket) {
-	char* buff = (char*)malloc(1024);
-	int size = read_all(client_socket, &buff, 1024);
+	// Receive size
+	short num;
+	int recv_result = recv(client_socket, &num, sizeof(short), 0);
+	if (recv_result == -1) {
+		perror("recv error");
+		return NULL;
+	}
+	num = ntohs(num);
+
+	char* buff = (char*)malloc(num);
+
+	// Assume read_all is correct
+	int size = read_all(client_socket, &buff, num);
 	struct message_t* result = size > 0 ? message_t__unpack(NULL, size, (uint8_t*)buff) : NULL;
+
 	free(buff);
 	return result;
 }
 
-
 int network_send(int client_socket, struct message_t* msg) {
-	char* buffer = (char*)malloc(1024);
-	int buffer_size = message_t__pack(msg, (uint8_t*)buffer);
-	message_t__free_unpacked(msg, NULL);
-	int num_bytes_written = write_all(client_socket, buffer, buffer_size);
+	char* buffer = (char*)malloc(1024);	 // Ensure 1024 is sufficient, or use dynamic size
+
+	// Send size
+	short num = (short)message_t__get_packed_size(msg);
+	short num_htons = htons(num);
+	int send_result = send(client_socket, &num_htons, sizeof(short), 0);
+	if (send_result == -1) {
+		perror("send error");
+		free(buffer);
+		return -1;
+	}
+	message_t__pack(msg, (uint8_t*)buffer);
+	// Assume write_all is correct
+	int num_bytes_written = write_all(client_socket, buffer, num);
+	if (num_bytes_written != num) {
+		perror("write_all error");
+		free(buffer);
+		return -1;
+	}
+
+	message_t__free_unpacked(msg, NULL);  // Free message after sending
+
 	free(buffer);
 	return num_bytes_written;
 }
-
 
 int network_server_close(int socket) {
 	close(socket);
