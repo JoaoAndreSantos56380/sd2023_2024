@@ -18,7 +18,6 @@
 #include "network_server.h"
 #include "table_skel.h"
 
-
 int network_server_init(short port) {
 	// socket info struct
 	int listening_socket;
@@ -57,7 +56,6 @@ int network_server_init(short port) {
 
 	return listening_socket;
 }
-
 
 int network_main_loop(int listening_socket, struct table_t* table) {
 	struct sockaddr client_info = {0};
@@ -98,15 +96,16 @@ struct message_t* network_receive(int client_socket) {
 }
 
 int network_send(int client_socket, struct message_t* msg) {
-	char* buffer = (char*)malloc(1024);	 // Ensure 1024 is sufficient, or use dynamic size
-
 	// Send size
 	short num = (short)message_t__get_packed_size(msg);
 	short num_htons = htons(num);
 	int send_result = send(client_socket, &num_htons, sizeof(short), 0);
 	if (send_result == -1) {
 		perror("send error");
-		free(buffer);
+		return -1;
+	}
+	char* buffer = (char*)malloc(num);
+	if (buffer == NULL) {
 		return -1;
 	}
 	message_t__pack(msg, (uint8_t*)buffer);
