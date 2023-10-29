@@ -91,25 +91,25 @@ table_skel.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/table_skel.c -o $(OBJ_DIR)/table_skel.o
 
 table-server: libtable sdmessage.pb-c.o network_server.o table_skel.o message-private.o sdmessage.pb-c.o
-	$(CC) $(CFLAGS) $(SRC_DIR)/table_server.c -o $(BIN_DIR)/table-server $(OBJ_DIR)/network_server.o $(OBJ_DIR)/table_skel.o $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
+	$(CC) $(CFLAGS) $(SRC_DIR)/table_server.c -o $(BIN_DIR)/table_server $(OBJ_DIR)/network_server.o $(OBJ_DIR)/table_skel.o $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
 
 server_run: table-server
-	./$(BIN_DIR)/table-server 1337 4
+	./$(BIN_DIR)/table_server 1337 4
 
 libtable: data.o entry.o list.o table.o
 	ar -rcs $(LIB_DIR)/libtable.a $(OBJ_DIR)/data.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/list.o $(OBJ_DIR)/table.o
 
 table-client: libtable client_stub.o sdmessage.pb-c.o message-private.o network_client.o
-	$(CC) $(CFLAGS) $(SRC_DIR)/table_client.c -o $(BIN_DIR)/table-client $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/network_client.o $(OBJ_DIR)/client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
+	$(CC) $(CFLAGS) $(SRC_DIR)/table_client.c -o $(BIN_DIR)/table_client $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/network_client.o $(OBJ_DIR)/client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
 
 client_run: table-client
-	./$(BIN_DIR)/table-client 127.0.0.1:1337
+	./$(BIN_DIR)/table_client 127.0.0.1:1337 < teste.txt
 
 cclient_valgrind: table-client
-	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337 < ./teste.txt
+	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table_client 127.0.0.1:1337 < ./teste.txt
 
 sserver_valgrind: table-server
-	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-server 1337 4
+	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table_server 1337 4
 
 data.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/data.c -o $(OBJ_DIR)/data.o
