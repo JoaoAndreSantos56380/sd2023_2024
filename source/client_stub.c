@@ -12,7 +12,6 @@
 #include "network_client.h"
 #include "sdmessage.pb-c.h"
 
-
 struct rtable_t* rtable_connect(char* address_port) {
 	char* adrsport = (char*)malloc(strlen(address_port) + 1);
 	strcpy(adrsport, address_port);
@@ -21,11 +20,11 @@ struct rtable_t* rtable_connect(char* address_port) {
 	struct rtable_t* rtable = (struct rtable_t*)malloc(sizeof(struct rtable_t));
 	rtable->server_address = hostname;
 	rtable->server_port = atoi(port);
+	free(port);
 	rtable->sockfd = -1;
 	free(adrsport);
 	return network_connect(rtable) == -1 ? NULL : rtable;
 }
-
 
 int rtable_disconnect(struct rtable_t* rtable) {
 	if (network_close(rtable) == -1) {
@@ -36,7 +35,6 @@ int rtable_disconnect(struct rtable_t* rtable) {
 	printf("Closing\n");
 	return 0;
 }
-
 
 int rtable_put(struct rtable_t* rtable, struct entry_t* entry) {
 	MessageT* request = (MessageT*)malloc(sizeof(MessageT));
@@ -55,7 +53,6 @@ int rtable_put(struct rtable_t* rtable, struct entry_t* entry) {
 	message_t__free_unpacked(response, NULL);
 	return result;
 }
-
 
 struct data_t* rtable_get(struct rtable_t* rtable, char* key) {
 	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
@@ -76,7 +73,6 @@ struct data_t* rtable_get(struct rtable_t* rtable, char* key) {
 	return data;
 }
 
-
 int rtable_del(struct rtable_t* rtable, char* key) {
 	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
 	message_t__init(request);
@@ -90,7 +86,6 @@ int rtable_del(struct rtable_t* rtable, char* key) {
 	return result;
 }
 
-
 int rtable_size(struct rtable_t* rtable) {
 	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
 	message_t__init(request);
@@ -102,7 +97,6 @@ int rtable_size(struct rtable_t* rtable) {
 	message_t__free_unpacked(response, NULL);
 	return result;
 }
-
 
 char** rtable_get_keys(struct rtable_t* rtable) {
 	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
@@ -126,12 +120,11 @@ char** rtable_get_keys(struct rtable_t* rtable) {
 	return keys;
 }
 
-
-struct entry_t** rtable_get_table(struct rtable_t* rtable){
+struct entry_t** rtable_get_table(struct rtable_t* rtable) {
 	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
 	message_t__init(request);
-	request -> opcode = MESSAGE_T__OPCODE__OP_GETTABLE;
-	request -> c_type = MESSAGE_T__C_TYPE__CT_NONE;
+	request->opcode = MESSAGE_T__OPCODE__OP_GETTABLE;
+	request->c_type = MESSAGE_T__C_TYPE__CT_NONE;
 	struct message_t* response = network_send_receive(rtable, request);
 	free(request);
 	if (response->opcode == MESSAGE_T__OPCODE__OP_ERROR) {
@@ -140,24 +133,38 @@ struct entry_t** rtable_get_table(struct rtable_t* rtable){
 	}
 
 	struct entry_t** entries = (struct entry_t**)malloc(sizeof(struct entry_t*) * (response->n_entries + 1));
-	int i;
-	struct entry_t* entry = malloc(sizeof(struct entry_t));
-	entry->key = malloc(sizeof(char*));
-	for (i = 0; i < response->n_entries; i++) {
-		strcpy(entry->key, response->entries[i]->key);
-		entry->value = data_create(response->entries[i]->value.len, response->entries[i]->value.data);
-		entries[i] = entry_dup(entry);
+	int i = 0;
+	for (; i < response->n_entries; i++) {
+		entries[i] = malloc(sizeof(struct entry_t));
+		if (entries[i] == NULL) {
+			free(entries);
+			return NULL;
+		}
+		entries[i]->key = malloc(strlen(response->entries[i]->key));
+		if (entries[i]->key == NULL) {
+			free(entries[i]);
+			free(entries);
+			return NULL;
+		}
+		strcpy(entries[i]->key, response->entries[i]->key);
+		entries[i]->value = data_create(response->entries[i]->value.len, response->entries[i]->value.data);
+		if (entries[i]->value == NULL) {
+			free(entries[i]->key);
+			free(entries[i]);
+			free(entries);
+			return NULL;
+		}
 	}
 	entries[i] = NULL;
+	message_t__free_unpacked(response, NULL);
 	return entries;
 }
 
-
-void rtable_free_entries(struct entry_t** entries){
-	if(entries != NULL){
+void rtable_free_entries(struct entry_t** entries) {
+	if (entries != NULL) {
 		int i = 0;
 
-		while(entries[i] != NULL){
+		while (entries[i] != NULL) {
 			entry_destroy(entries[i]);
 		}
 		free(entries);
