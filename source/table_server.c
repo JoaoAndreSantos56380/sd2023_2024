@@ -18,18 +18,26 @@ int main(int argc, char** argv) {
 
 	// verifica os argumentos passados
 	if (argc != 3) {
-		printf("Usage: ./table-server <port> <n_lists>\n");
-		printf("Example: ./table-server 12345 3\n");
+		initArgsError();
 		return -1;
 	}
 
 	port = atoi(argv[1]);
-	if ((listening_socket = network_server_init(port)) < 0) {
+	if(port <= 0) {
+		printf("Invalid port: %s\n", argv[1]);
+		initArgsError();
 		return -1;
 	}
 
 	n_lists = atoi(argv[2]);
 	if (n_lists <= 0) {
+		printf("Invalid n_lists: %s\n", argv[2]);
+		initArgsError();
+		return -1;
+	}
+
+	if ((listening_socket = network_server_init(port)) < 0) {
+		initArgsError();
 		return -1;
 	}
 
@@ -46,6 +54,11 @@ int main(int argc, char** argv) {
 	}
 
 	return result;
+}
+
+void initArgsError() {
+	printf("Usage: ./table-server <port> <n_lists>\n");
+	printf("Example: ./table-server 12345 3\n");
 }
 
 void table_server_close(int signum /* , int listening_socket, struct table_t* table */) {

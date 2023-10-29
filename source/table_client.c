@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <arpa/inet.h>
 
 #include "client_stub-private.h"
 #include "client_stub.h"
@@ -24,12 +25,41 @@
 
 int main(int argc, char const* argv[]) {
 	if (argc < 2) {
-		printf("Usage: ./table-client <server>:<port>\n");
-		printf("Example: ./table-client 127.0.0.1:12345\n");
+		initArgsError();
 		return -1;
 	}
 
-	struct rtable_t* rtable = rtable_connect((char*)argv[1]);
+	// Verificar se o argumento passado está no formato <ip>:<port>
+	char* args = strdup((char*)argv[1]);
+	char* token = strtok((char*)argv[1], ":");
+	if (token == NULL) {
+        initArgsError();
+        return -1;
+    }
+	char *ip_str = token;
+	token = strtok(NULL, ":");
+	if (token == NULL) {
+        initArgsError();
+        return -1;
+    }
+	char *port_str = token;
+
+	// Verificar se o ip e o porto são válidos
+    struct in_addr addr;
+    if (inet_pton(AF_INET, ip_str, &addr) != 1) {
+        printf("Invalid IP address: %s\n", ip_str);
+		initArgsError();
+        return -1;
+    }
+    int port;
+    if (sscanf(port_str, "%d", &port) != 1) {
+        printf("Invalid port: %s\n", port_str);
+		initArgsError();
+        return -1;
+    }
+
+	struct rtable_t* rtable = rtable_connect(args);
+	free(args);
 	if (rtable == NULL) {
 		perror("could not connect client\n");
 		return -1;
@@ -59,6 +89,11 @@ int main(int argc, char const* argv[]) {
 	rtable_disconnect(rtable);
 	printf("Client exiting. Bye.\n");
 	return 0;
+}
+
+void initArgsError() {
+	printf("Usage: ./table-client <server>:<port>\n");
+	printf("Example: ./table-client 127.0.0.1:12345\n");
 }
 
 void showMenu() {
