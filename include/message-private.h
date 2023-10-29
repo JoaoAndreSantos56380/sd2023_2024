@@ -22,21 +22,4 @@ int read_all(int socket, char** buf, int size);
 *  Em caso de erro devolve -1.
 */
 int write_all(int socket, char* buf, int size);
-
-/* Esta função deve:
- * - Ler os bytes da rede, a partir do client_socket indicado;
- * - De-serializar estes bytes e construir a mensagem com o pedido,
- *   reservando a memória necessária para a estrutura message_t.
- * - Em caso de erro, devolve null.
- */
-struct MessageT* message_receive(int client_socket);
-
-/* Esta função deve:
- * - Serializar a mensagem de resposta contida em msg;
- * - Libertar a memória ocupada por esta mensagem;
- * - Enviar a mensagem serializada, através do client_socket.
- * - Em caso de erro, devolve -1.
- */
-int message_send(int client_socket, struct MessageT* msg);
-
 #endif
