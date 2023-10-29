@@ -15,9 +15,10 @@ CC = gcc
 
 CFLAGS = -Wall -g -I $(INC_DIR)
 
-EXECS = $(BIN_DIR)/table-server $(BIN_DIR)/table-client
+EXECS = table-server table-client
 
 # Source files and object files
+make: $(EXECS)
 
 all: libtable table-server table-client
 
