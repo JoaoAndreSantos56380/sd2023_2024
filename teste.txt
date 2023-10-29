@@ -50,4 +50,5 @@ getkeys
 gettable
 getkeys
 gettable
+size
 quit
