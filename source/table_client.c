@@ -180,6 +180,7 @@ void executeDel(struct rtable_t* rtable, char* option) {
 	int result = rtable_del(rtable, key);
 	if (result == -1) {
 		printf("\nDel failed\n");
+		free(key);
 		return;
 	}
 	free(key);
