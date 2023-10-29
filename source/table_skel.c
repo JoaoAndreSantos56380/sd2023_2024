@@ -60,6 +60,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 			// Atualizar a estrutura MessageT com o resultado
 			msg->opcode = MESSAGE_T__OPCODE__OP_PUT + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+			data_destroy(data);
 			return 0;
 		case MESSAGE_T__OPCODE__OP_GET:
 			// Verificar se o campo da mensagem é válido
@@ -167,17 +168,22 @@ int invoke(MessageT* msg, struct table_t* table) {
 				msg->entries[i] = malloc(sizeof(EntryT));
 				entry_t__init(msg->entries[i]);
 				struct entry_t* dup = entry_dup(all_entries[i]);
-				printf("%s\n", dup->key);
-				printf("%s\n", (char*)dup->value->data);
+				/* 				printf("%s\n", dup->key);
+								printf("%s\n", (char*)dup->value->data); */
 				msg->entries[i]->key = malloc(sizeof(char*));
 				strcpy(msg->entries[i]->key, all_entries[i]->key);
 				msg->entries[i]->value.len = dup->value->datasize;
 				msg->entries[i]->value.data = malloc(dup->value->datasize);
 				memcpy(msg->entries[i]->value.data, dup->value->data, dup->value->datasize);
+				entry_destroy(dup);
 			}
 
 			msg->entries[num_entries] = NULL;
 			msg->n_entries = num_entries;
+			for (int i = 0; i < num_entries; i++) {
+				entry_destroy(all_entries[i]);
+			}
+			free(all_entries);
 			return 0;
 		default:
 			// Opcode inválido

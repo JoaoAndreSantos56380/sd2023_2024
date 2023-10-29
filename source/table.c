@@ -101,7 +101,8 @@ int table_put(struct table_t* table, char* key, struct data_t* value) {
 
 	// Atualiza a lista na estrutura table_t
 	table->lists[row] = list;
-
+	free(key_copy);
+	data_destroy(value_copy);
 	return 0;
 }
 
@@ -201,9 +202,12 @@ char** table_get_keys(struct table_t* table) {
 			while (key != NULL) {
 				char* key_copy = (char*)malloc(strlen(key) + 1);
 				strcpy(key_copy, key);
-				keys[keyIndex++] = key_copy;
+				char* key_copy_dup = strdup(key_copy);
+				keys[keyIndex++] = key_copy_dup;
 				printf("key[%d]:%s\n", keyIndex, keys[keyIndex-1]);
 				key = listKeys[++listIndex];
+				free(key_copy);
+				//free(key_copy_dup);
 			}
 		}
 		list_free_keys(listKeys);
@@ -252,7 +256,7 @@ struct entry_t **get_all_entries(struct table_t *table, int *num_entries) {
     if (all_keys == NULL) {
         return NULL;
     }
-
+	struct entry_t **new_all_entries = NULL;
 	// Conta o número total de entries e aloca espaço para o array de pointers
     for (int i = 0; all_keys[i] != NULL; i++) {
         struct entry_t *entry = table_get_entry(table, all_keys[i]);
@@ -266,7 +270,7 @@ struct entry_t **get_all_entries(struct table_t *table, int *num_entries) {
             return NULL;
         }
         total_entries++;
-        struct entry_t **new_all_entries = (struct entry_t **)realloc(all_entries, total_entries * sizeof(struct entry_t *));
+        new_all_entries = (struct entry_t **)realloc(all_entries, total_entries * sizeof(struct entry_t *));
         if (new_all_entries == NULL) {
             // Erro ao alocar memória, liberar memória alocada anteriormente
             for (int j = 0; j < total_entries; j++) {
@@ -278,9 +282,8 @@ struct entry_t **get_all_entries(struct table_t *table, int *num_entries) {
         }
         all_entries = new_all_entries; // Garantir que estamos a usar o ponteiro correto, pois ao fazermos realloc podemos ficar com o ponteiro original ou com o novo.
         all_entries[total_entries - 1] = entry; // Vai-se colocando no último elemento, pois vamos expandindo.
-
 		for (int i = 0; i < total_entries; i++) {
-			printf("key:%s, valuesize:%d, valuedata:%s\n", (char*)(all_entries[i]->key), all_entries[i]->value->datasize, (char*)all_entries[i]->value->data);
+			  printf("key:%s, valuesize:%d, valuedata:%s\n", (char*)(all_entries[i]->key), all_entries[i]->value->datasize, (char*)all_entries[i]->value->data);
 		}
 		printf("\n");
     }
