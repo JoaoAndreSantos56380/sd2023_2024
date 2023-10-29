@@ -1,7 +1,7 @@
 // Grupo 21
 // Joao Santos 56380
 // Rafael Ferreira 57544
-// Ricardo Mateus 56366#include "network_client.h"
+// Ricardo Mateus 56366
 
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -10,7 +10,9 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 #include "client_stub-private.h"
+#include "network_client.h"
 #include "message-private.h"
 #include "client_stub.h"
 #include "sdmessage.pb-c.h"
@@ -53,33 +55,58 @@ int network_connect(struct rtable_t* rtable) {
 	return 0;
 }
 
-
 MessageT* network_send_receive(struct rtable_t* rtable, MessageT* msg) {
-	// alteramos os returns dos erros para NULL?
 	int sockfd = rtable->sockfd;
-	// variavel temporaria para guardar os bytes
 	int nbytes;
-
-
 	int size_msg = message_t__get_packed_size(msg);
 	char* buffer = (char*)malloc(size_msg);
-	int buffer_size = message_t__pack(msg, (uint8_t*)buffer);
-	MessageT* str_de_serialized;
-
-	if ((nbytes = write_all(sockfd, buffer, buffer_size)) != buffer_size) {
-		perror("Erro ao enviar dados ao servidor");
+	message_t__pack(msg, (uint8_t*)buffer);
+	// Send msg size
+	short value = (short)size_msg;
+	short htons_value = htons(value);
+	int send_result = send(sockfd, &htons_value, sizeof(short), 0);
+	if (send_result == -1) {
+		perror("send error");
+		free(buffer);
 		close(sockfd);
 		return NULL;
 	}
 
-	buffer = (char*)realloc(buffer, 1024);
-	nbytes = read_all(sockfd, &buffer, 1024);
+	// Assume write_all is correct
+	if ((nbytes = write_all(sockfd, buffer, value)) != value) {
+		perror("Erro ao enviar dados ao servidor");
+		free(buffer);
+		close(sockfd);
+		return NULL;
+	}
 
-	str_de_serialized = message_t__unpack(NULL, nbytes, (uint8_t*)buffer);
+	buffer = (char*)realloc(buffer, 1024);	 // Ensure 1024 is sufficient, or use dynamic size
 
+	// Receive response size
+	short num;
+	int recv_result = recv(sockfd, &num, sizeof(short), 0);
+	if (recv_result == -1) {
+		perror("recv error");
+		free(buffer);
+		close(sockfd);
+		return NULL;
+	}
+	num = ntohs(num);
+
+	// Assume read_all is correct
+	nbytes = read_all(sockfd, &buffer, num);
+	if (nbytes != num) {
+		perror("Erro ao receber dados do servidor");
+		free(buffer);
+		close(sockfd);
+		return NULL;
+	}
+
+	MessageT* str_de_serialized = message_t__unpack(NULL, nbytes, (uint8_t*)buffer);
+
+	free(buffer);	// Free the buffer after use
 	return str_de_serialized;
 }
-
 
 int network_close(struct rtable_t* rtable) {
 	return close(rtable->sockfd);
