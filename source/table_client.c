@@ -147,8 +147,8 @@ void executeGet(struct rtable_t* rtable, char* option) {
 	}
 	if (key == NULL) {
 		printf("The inserted 'get' command is wrong.\n");
-		printf("Example: get 1\n");
-		return;	// inputs errados => sair da função
+		printf("Example: get key\n");
+		return;
 	}
 	struct data_t* value = rtable_get(rtable, key);
 	free(key);
@@ -174,8 +174,8 @@ void executeDel(struct rtable_t* rtable, char* option) {
 	}
 	if (key == NULL) {
 		printf("The inserted 'del' command is wrong.\n");
-		printf("Example: del 1\n");
-		return;	// inputs errados => sair da função
+		printf("Example: del key\n");
+		return;
 	}
 	int result = rtable_del(rtable, key);
 	if (result == -1) {
