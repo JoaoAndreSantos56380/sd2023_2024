@@ -105,8 +105,11 @@ table-client: libtable client_stub.o sdmessage.pb-c.o message-private.o network_
 client_run: table-client
 	./$(BIN_DIR)/table-client 127.0.0.1:1337
 
-cclient_valgrind: tree_client
-	valgrind --leak-check=full --track-origins=yes $(BINDIR)/tree_client 127.0.0.1:1337 < ./tests/del01.txt
+cclient_valgrind: table-client
+	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337 < ./teste.txt
+
+sserver_valgrind: table-server
+	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-server 1337 4
 
 data.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/data.c -o $(OBJ_DIR)/data.o
