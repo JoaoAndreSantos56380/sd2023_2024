@@ -3,20 +3,19 @@
 // Rafael Ferreira 57544
 // Ricardo Mateus 56366
 
-#include <stdlib.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #include "client_stub-private.h"
-#include "network_client.h"
-#include "message-private.h"
 #include "client_stub.h"
+#include "message-private.h"
+#include "network_client.h"
 #include "sdmessage.pb-c.h"
-
 
 int network_connect(struct rtable_t* rtable) {
 	struct sockaddr_in serv_addr;
@@ -80,8 +79,6 @@ MessageT* network_send_receive(struct rtable_t* rtable, MessageT* msg) {
 		return NULL;
 	}
 
-	buffer = (char*)realloc(buffer, 1024);	 // Ensure 1024 is sufficient, or use dynamic size
-
 	// Receive response size
 	short num;
 	int recv_result = recv(sockfd, &num, sizeof(short), 0);
@@ -93,6 +90,8 @@ MessageT* network_send_receive(struct rtable_t* rtable, MessageT* msg) {
 	}
 	num = ntohs(num);
 
+	buffer = (char*)realloc(buffer, num);
+
 	// Assume read_all is correct
 	nbytes = read_all(sockfd, &buffer, num);
 	if (nbytes != num) {
@@ -102,10 +101,9 @@ MessageT* network_send_receive(struct rtable_t* rtable, MessageT* msg) {
 		return NULL;
 	}
 
-	MessageT* str_de_serialized = message_t__unpack(NULL, nbytes, (uint8_t*)buffer);
-
+	MessageT* deserialized = message_t__unpack(NULL, nbytes, (uint8_t*)buffer);
 	free(buffer);	// Free the buffer after use
-	return str_de_serialized;
+	return deserialized;
 }
 
 int network_close(struct rtable_t* rtable) {
