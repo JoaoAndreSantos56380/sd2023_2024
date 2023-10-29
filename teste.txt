@@ -25,6 +25,11 @@ put di maria
 del di
 put di magia
 put rogerio chaimite
+put rogeria chaimite
+put rogerii chaimite
+put rogerio chaimite
+put rogeriu chaimite
+put rogerib chaimite
 getkeys
 gettable
 del rogerio
@@ -41,6 +46,8 @@ del c
 del d
 del e
 del f
+getkeys
+gettable
 getkeys
 gettable
 quit
