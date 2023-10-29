@@ -3,7 +3,7 @@
         {
             "label": "Compile_client",
             "type": "shell",
-            "command": "make table_client",
+            "command": "make table-client",
             "problemMatcher": [
                 "$gcc"
             ]
@@ -11,7 +11,7 @@
         {
             "label": "Compile_server",
             "type": "shell",
-            "command": "make table_server",
+            "command": "make table-server",
             "problemMatcher": [
                 "$gcc"
             ]
