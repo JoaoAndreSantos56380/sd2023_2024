@@ -154,12 +154,14 @@ void executePut(struct rtable_t* rtable, char* option) {
 			value = strdup(token);
 		}
 	}
+	
 	if (key == NULL || value == NULL) {
 		printf("The inserted 'put' command is wrong.\n");
 		printf("Example: put key value\n");
 		return;
 	}
-	struct data_t* data = data_create(strlen(value), value);
+
+	struct data_t* data = data_create(strlen(value) + 1, value);
 	free(value);
 	struct entry_t* entry = entry_create(key, data);
 	free(key);

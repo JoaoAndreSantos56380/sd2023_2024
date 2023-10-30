@@ -77,7 +77,7 @@ int network_main_loop(int listening_socket, struct table_t* table) {
 
 struct message_t* network_receive(int client_socket) {
 	// Receive size
-	short num;
+	short num = 0;
 	// int recv_result = recv(client_socket, &num, sizeof(short), 0);
 	int recv_result = read(client_socket, &num, sizeof(short));
 	if (recv_result == -1) {
@@ -87,7 +87,9 @@ struct message_t* network_receive(int client_socket) {
 	num = ntohs(num);
 
 	char* buff = (char*)malloc(num);
-
+	if(buff == NULL){
+		return NULL;
+	}
 	// Assume read_all is correct
 	int size = read_all(client_socket, &buff, num);
 	struct message_t* result = size > 0 ? message_t__unpack(NULL, size, (uint8_t*)buff) : NULL;

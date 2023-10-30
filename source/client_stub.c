@@ -140,7 +140,7 @@ struct entry_t** rtable_get_table(struct rtable_t* rtable) {
 			free(entries);
 			return NULL;
 		}
-		entries[i]->key = malloc(strlen(response->entries[i]->key));
+		entries[i]->key = malloc(strlen(response->entries[i]->key) + 1);
 		if (entries[i]->key == NULL) {
 			free(entries[i]);
 			free(entries);

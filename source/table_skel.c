@@ -163,17 +163,16 @@ int invoke(MessageT* msg, struct table_t* table) {
 			// Atualizar a estrutura MessageT com o resultado
 			msg->opcode = MESSAGE_T__OPCODE__OP_GETTABLE + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_TABLE;
-			msg->entries = malloc(sizeof(EntryT) * (num_entries + 1));
+			msg->entries = malloc(sizeof(EntryT*) * (num_entries + 1));
 			for (int i = 0; i < num_entries; i++) {
-				msg->entries[i] = malloc(sizeof(EntryT));
+				struct entry_t* entry = all_entries[i];
+				msg->entries[i] = (EntryT*)malloc(sizeof(EntryT));
 				entry_t__init(msg->entries[i]);
-				struct entry_t* dup = entry_dup(all_entries[i]);
-				msg->entries[i]->key = malloc(sizeof(char*));
+				msg->entries[i]->key = malloc(strlen(entry->key) + 1);
 				strcpy(msg->entries[i]->key, all_entries[i]->key);
-				msg->entries[i]->value.len = dup->value->datasize;
-				msg->entries[i]->value.data = malloc(dup->value->datasize);
-				memcpy(msg->entries[i]->value.data, dup->value->data, dup->value->datasize);
-				entry_destroy(dup);
+				msg->entries[i]->value.len = entry->value->datasize;
+				msg->entries[i]->value.data = malloc(entry->value->datasize);
+				memcpy(msg->entries[i]->value.data, entry->value->data, entry->value->datasize);
 			}
 
 			msg->entries[num_entries] = NULL;
