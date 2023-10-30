@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
 	}
 
 	port = atoi(argv[1]);
-	if(port <= 0) {
+	if (port <= 0) {
 		printf("Invalid port: %s\n", argv[1]);
 		initArgsError();
 		return -1;
@@ -64,7 +64,7 @@ void initArgsError() {
 void table_server_close(int signum /* , int listening_socket, struct table_t* table */) {
 	// Close server
 	if (network_server_close(listening_socket) != 0) {
-		printf("Error in table_server_close()\n");
+		printf("Error in network_server_close()\n");
 	}
 	table_skel_destroy(table);
 	printf("\nServer Closed Sucessfuly\n");

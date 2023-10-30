@@ -18,6 +18,7 @@
 #include "network_server.h"
 #include "table_skel.h"
 
+int client_socket;
 int network_server_init(short port) {
 	// socket info struct
 	int listening_socket;
@@ -60,7 +61,6 @@ int network_server_init(short port) {
 int network_main_loop(int listening_socket, struct table_t* table) {
 	struct sockaddr client_info = {0};
 	socklen_t client_info_len = sizeof(client_info);
-	int client_socket;
 	while ((client_socket = accept(listening_socket, &client_info, &client_info_len)) > 0) {
 		printf("Client connected\n");
 
@@ -80,14 +80,13 @@ struct message_t* network_receive(int client_socket) {
 	short num = 0;
 	// int recv_result = recv(client_socket, &num, sizeof(short), 0);
 	int recv_result = read(client_socket, &num, sizeof(short));
-	if (recv_result == -1) {
-		perror("recv error");
+	if (recv_result < 1) {
 		return NULL;
 	}
 	num = ntohs(num);
 
 	char* buff = (char*)malloc(num);
-	if(buff == NULL){
+	if (buff == NULL) {
 		return NULL;
 	}
 	// Assume read_all is correct
@@ -128,6 +127,7 @@ int network_send(int client_socket, struct message_t* msg) {
 }
 
 int network_server_close(int socket) {
-	close(socket);
+	close(socket);			  // Não aceita novas ligações de clientes
+	close(client_socket);  // Fecha as ligações atuais
 	return 0;
 }
