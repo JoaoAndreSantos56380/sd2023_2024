@@ -107,6 +107,9 @@ client_run: table-client
 
 cclient_valgrind: table-client
 	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337 < ./teste.txt
+	
+cclient_valgrind2: table-client
+	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337
 
 sserver_valgrind: table-server
 	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-server 1337 4
