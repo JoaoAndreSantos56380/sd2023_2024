@@ -1,0 +1,9 @@
+
+#ifndef _NETWORK_SERVER_PRIVATE_H
+#define _NETWORK_SERVER_PRIVATE_H
+
+
+#define TIMEOUT -1
+
+
+#endif
