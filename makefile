@@ -91,7 +91,7 @@ table_skel.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/table_skel.c -o $(OBJ_DIR)/table_skel.o
 
 table-server: libtable sdmessage.pb-c.o network_server.o table_skel.o message-private.o sdmessage.pb-c.o
-	$(CC) $(CFLAGS) $(SRC_DIR)/table_server.c -o $(BIN_DIR)/table-server $(OBJ_DIR)/network_server.o $(OBJ_DIR)/table_skel.o $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
+	$(CC) $(CFLAGS) $(SRC_DIR)/table_server.c -o $(BIN_DIR)/table-server $(OBJ_DIR)/network_server.o $(OBJ_DIR)/table_skel.o $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c -lpthread
 
 server_run: table-server
 	./$(BIN_DIR)/table-server 1337 4
@@ -107,7 +107,7 @@ client_run: table-client
 
 cclient_valgrind: table-client
 	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337 < ./teste.txt
-	
+
 cclient_valgrind2: table-client
 	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337
 

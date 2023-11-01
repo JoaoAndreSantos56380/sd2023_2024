@@ -10,7 +10,8 @@
 		"table_client-private.h": "c",
 		"sdmessage.pb-c.h": "c",
 		"client_stub.h": "c",
-		"client_stub-private.h": "c"
+		"client_stub-private.h": "c",
+		"network_server.h": "c"
 	},
 	"C_Cpp.dimInactiveRegions": false,
 }

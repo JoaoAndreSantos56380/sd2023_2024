@@ -5,7 +5,9 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <pthread.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,8 +15,6 @@
 #include <sys/types.h>
 #include <table.h>
 #include <unistd.h>
-#include <stdbool.h>
-#include <pthread.h>
 
 #include "message-private.h"
 #include "network_server.h"
@@ -26,35 +26,50 @@ pthread_mutex_t table_mutex = PTHREAD_MUTEX_INITIALIZER;
 // Para fechar o servidor e as threads
 pthread_cond_t server_shutdown = PTHREAD_COND_INITIALIZER;
 bool server_running = true;
-
+struct table_t* table_tt;
 // Função usada para atender cada cliente numa nova thread
 void *client_thread(void *arg) {
-    int connsockfd = *((int *)arg);
-    struct table_t* table = (struct table_t*)arg;
+	int client_socket = *(int*)arg;
+	free(arg);	// We allocated a pointer for each client, make sure to free it.
 
-    printf("Client connected\n");
+	printf("Client connected\n");
 
-    struct message_t* message;
-    while ((message = network_receive(connsockfd)) != NULL) {
-        // Bloqueia o mutex antes de acessar a tabela
-        pthread_mutex_lock(&table_mutex);
+	struct message_t* msg;
+	while ((msg = network_receive(client_socket)) != NULL) {
+		invoke(msg, table_tt);
+		network_send(client_socket, msg);
+	}
 
-        // Verifica se o servidor ainda está running, se não estiver dá unlock e sai do while
-        if (!server_running) {
-            pthread_mutex_unlock(&table_mutex);
-            break;
-        }
+	close(client_socket);
+	printf("Client disconnected\n");
 
-        invoke(message, table);
-        pthread_mutex_unlock(&table_mutex);
-        network_send(connsockfd, message);
-    }
+	return NULL;
+	/*     int connsockfd = *((int *)arg);
+		 struct table_t* table = (struct table_t*)arg;
 
-    close(connsockfd);
-    printf("Client disconnected\n");
+		 printf("Client connected\n");
 
-    free(arg);
-    pthread_exit(NULL);
+		 struct message_t* message;
+		 while ((message = network_receive(connsockfd)) != NULL) {
+			  // Bloqueia o mutex antes de acessar a tabela
+			  //pthread_mutex_lock(&table_mutex);
+
+			  // Verifica se o servidor ainda está running, se não estiver dá unlock e sai do while
+			  if (!server_running) {
+				  // pthread_mutex_unlock(&table_mutex);
+					break;
+			  }
+
+			  invoke(message, table);
+			  //pthread_mutex_unlock(&table_mutex);
+			  network_send(connsockfd, message);
+		 }
+
+		 close(connsockfd);
+		 printf("Client disconnected\n");
+
+		 free(arg);
+		 pthread_exit(NULL); */
 }
 
 int network_server_init(short port) {
@@ -97,31 +112,26 @@ int network_server_init(short port) {
 }
 
 int network_main_loop(int listening_socket, struct table_t* table) {
-    struct sockaddr client_info = {0};
-    socklen_t client_info_len = sizeof(client_info);
-    int connsockfd;
-
-    while (1) {
-        connsockfd = accept(listening_socket, &client_info, &client_info_len);
-        if (connsockfd == -1) {
-            perror("Erro ao aceitar conexão de cliente");
-            continue;
-        }
-
-        // Alocar memória para passar a tabela como argumento
-        struct table_t* table_arg = table;
-
-        // Criar uma nova thread para o cliente
-        pthread_t thread_id;
-        if (pthread_create(&thread_id, NULL, client_thread, (void *)table_arg) != 0) {
-            perror("Erro ao criar a thread do cliente");
-            close(connsockfd);
-        }
-    }
-
-    return 0;
+	table_tt = table;
+	struct sockaddr client_info = {0};
+	socklen_t client_info_len = sizeof(client_info);
+	while (1) {
+		int* new_sock = malloc(sizeof(int));
+		if ((*new_sock = accept(listening_socket, &client_info, &client_info_len)) > 0) {
+			pthread_t thread_id;
+			if (pthread_create(&thread_id, NULL, client_thread, (void*)new_sock) < 0) {
+				perror("could not create thread");
+				free(new_sock);
+				continue;
+			}
+			// Optionally, detach the thread so that resources are automatically reclaimed upon thread termination.
+			pthread_detach(thread_id);
+		} else {
+			free(new_sock);  // If accept failed, we need to free the allocated memory.
+		}
+	}
+	return 0;
 }
-
 struct message_t* network_receive(int client_socket) {
 	// Receive size
 	short num = 0;
