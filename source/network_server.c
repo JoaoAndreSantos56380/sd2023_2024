@@ -5,7 +5,6 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#include <poll.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,14 +13,50 @@
 #include <sys/types.h>
 #include <table.h>
 #include <unistd.h>
-
+#include <stdbool.h>
+#include <pthread.h>
 
 #include "message-private.h"
 #include "network_server.h"
-#include "network_server-private.h"
 #include "table_skel.h"
 
-int client_socket;
+// Mutex para controlar o acesso concorrente à tabela
+pthread_mutex_t table_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+// Para fechar o servidor e as threads
+pthread_cond_t server_shutdown = PTHREAD_COND_INITIALIZER;
+bool server_running = true;
+
+// Função usada para atender cada cliente numa nova thread
+void *client_thread(void *arg) {
+    int connsockfd = *((int *)arg);
+    struct table_t* table = (struct table_t*)arg;
+
+    printf("Client connected\n");
+
+    struct message_t* message;
+    while ((message = network_receive(connsockfd)) != NULL) {
+        // Bloqueia o mutex antes de acessar a tabela
+        pthread_mutex_lock(&table_mutex);
+
+        // Verifica se o servidor ainda está running, se não estiver dá unlock e sai do while
+        if (!server_running) {
+            pthread_mutex_unlock(&table_mutex);
+            break;
+        }
+
+        invoke(message, table);
+        pthread_mutex_unlock(&table_mutex);
+        network_send(connsockfd, message);
+    }
+
+    close(connsockfd);
+    printf("Client disconnected\n");
+
+    free(arg);
+    pthread_exit(NULL);
+}
+
 int network_server_init(short port) {
 	// socket info struct
 	int listening_socket;
@@ -62,44 +97,29 @@ int network_server_init(short port) {
 }
 
 int network_main_loop(int listening_socket, struct table_t* table) {
-	int num_fds = 1;	// Initialize connections array with the first position for the listening socket
-	struct pollfd* connections = (struct pollfd*)malloc(num_fds * sizeof(struct pollfd));
-	if (connections == NULL) {
-		perror("Could not initialize connections array.\n");
-		return -1;
-	}
-	connections->events = POLLIN;// para ler dados
-	connections->fd = listening_socket; // na socket do servidor ( a que esta a escuta)
-	while ((poll(connections, num_fds, TIMEOUT)) > 0) {
-		// If there are new clients wanting to connect, let's accept their connection (indice 0 implicito)
-		struct sockaddr client_info = {0};
-		socklen_t client_info_len = sizeof(client_info);
-		int new_client_fd;
-		if ((connections->revents & POLLIN) && (new_client_fd = accept(listening_socket, (struct sockaddr*)&client_info, &client_info_len)) > 0) {
-			connections = (struct pollfd*)realloc(connections, (++num_fds) * sizeof(struct pollfd));
-			connections[num_fds - 1].events = POLLIN;		 // There is data to read...
-			connections[num_fds - 1].fd = new_client_fd;	 // ...on the client socket
-			printf("Client connected\n");
-			continue;
-		}
+    struct sockaddr client_info = {0};
+    socklen_t client_info_len = sizeof(client_info);
+    int connsockfd;
 
-		for (int i = 1; i < num_fds; i++) {
-			if (connections[i].revents & POLLIN) {									 // If there's data to read
-				struct message_t* msg = network_receive(connections[i].fd);	 // [listening socket] [client1] [client2]
-				if (!msg) {
-					close(connections[i].fd);
-					printf("Client disconnected\n");
-					memcpy(&connections[i], &connections[i + 1], (--num_fds - i) * sizeof(struct pollfd));
-					connections = (struct pollfd*)realloc(connections, num_fds * sizeof(struct pollfd));
-					continue;
-				}
-				invoke(msg, table);
-				network_send(connections[i].fd, msg);
-			}
-		}
-	}
-	free(connections);
-	return 0;
+    while (1) {
+        connsockfd = accept(listening_socket, &client_info, &client_info_len);
+        if (connsockfd == -1) {
+            perror("Erro ao aceitar conexão de cliente");
+            continue;
+        }
+
+        // Alocar memória para passar a tabela como argumento
+        struct table_t* table_arg = table;
+
+        // Criar uma nova thread para o cliente
+        pthread_t thread_id;
+        if (pthread_create(&thread_id, NULL, client_thread, (void *)table_arg) != 0) {
+            perror("Erro ao criar a thread do cliente");
+            close(connsockfd);
+        }
+    }
+
+    return 0;
 }
 
 struct message_t* network_receive(int client_socket) {
@@ -153,8 +173,16 @@ int network_send(int client_socket, struct message_t* msg) {
 	return num_bytes_written;
 }
 
-int network_server_close(int socket) {
-	close(socket);			  // Não aceita novas ligações de clientes
-	close(client_socket);  // Fecha as ligações atuais
-	return 0;
+
+int network_server_close(int listening_socket) {
+    // Sinaliza que o servidor está a fechar
+    server_running = false;
+
+    // Aguarda que todas as threads secundárias terminem
+    pthread_cond_broadcast(&server_shutdown);
+
+    // Fecha o socket do servidor
+    close(listening_socket);
+
+    return 0;
 }
