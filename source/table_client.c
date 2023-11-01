@@ -22,6 +22,7 @@
 #define QUIT "quit"
 #define GET_KEYS "getkeys"
 #define GETTABLE "gettable"
+#define STATS "stats"
 
 int main(int argc, char const* argv[]) {
 	if (argc < 2) {
@@ -81,6 +82,8 @@ int main(int argc, char const* argv[]) {
 			executeDel(rtable, option);
 		} else if (commandIsSize(option)) {
 			executeSize(rtable);
+		} else if(commandIsStats(option)) {
+			executeStats(rtable);
 		} else if (!commandIsQuit(option)) {
 			printf("Please input a valid command.\n");
 		}
@@ -104,6 +107,7 @@ void showMenu() {
 	printf("size\n");
 	printf("getkeys\n");
 	printf("gettable\n");
+	printf("stats\n");
 	printf("quit\n");
 	printf("Option: ");
 }
@@ -139,6 +143,10 @@ int commandIsGetTable(char* option) {
 
 int commandIsGetKeys(char* option) {
 	return strncmp(option, GET_KEYS, strlen(GET_KEYS)) == 0;
+}
+
+int commandIsStats(char* option) {
+	return strncmp(option, GET_KEYS, strlen(STATS)) == 0;
 }
 
 void executePut(struct rtable_t* rtable, char* option) {
