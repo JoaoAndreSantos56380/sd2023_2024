@@ -14,6 +14,7 @@
 #include "entry.h"
 #include "sdmessage.pb-c.h"
 #include "table_client-private.h"
+#include "stats.h"
 
 #define PUT "put"
 #define GET "get"
@@ -287,4 +288,14 @@ void executeGetTable(struct rtable_t* rtable) {
 		printf("\n");
 	}
 	free(entries);
+}
+
+void executeStats(struct rtable_t* rtable) {
+	struct statistics_t* stats = rtable_stats(rtable);
+	if (stats == NULL) {
+		printf("\nStats failed\n");
+		return;
+	}
+	printf("\n #######Stats successful####### \n");
+	
 }

@@ -52,6 +52,13 @@ int commandIsDel(char* option);
 int commandIsSize(char* option);
 
 /*
+ * Função que verifica se a opção passada é do tipo "stats".
+ * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
+ * valor diferente de 0.
+ */
+int commandIsStats(char* option);
+
+/*
  * Função que verifica se a opção passada é do tipo "quit".
  * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
  * valor diferente de 0.

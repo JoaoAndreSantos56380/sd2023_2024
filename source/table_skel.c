@@ -5,9 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "sdmessage.pb-c.h"
 #include "table-private.h"
 #include "table.h"
+#include "stats.h"
 
 struct table_t* table_skel_init(int n_lists) {
 	// Inicializar a tabela com n_lists
@@ -62,6 +64,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 			msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
 			data_destroy(data);
 			return 0;
+
 		case MESSAGE_T__OPCODE__OP_GET:
 			// Verificar se o campo da mensagem é válido
 			if (msg->key == NULL) {
@@ -85,6 +88,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 			msg->value.data = result_data->data;
 			msg->value.len = result_data->datasize;
 			return 0;
+
 		case MESSAGE_T__OPCODE__OP_DEL:
 			// Verificar se o campo da mensagem é válido
 			if (msg->key == NULL) {
@@ -107,6 +111,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 			msg->opcode = MESSAGE_T__OPCODE__OP_DEL + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
 			return 0;
+
 		case MESSAGE_T__OPCODE__OP_SIZE:
 			// Fazer a operação na tabela
 			int size = table_size(table);
@@ -123,6 +128,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 			msg->c_type = MESSAGE_T__C_TYPE__CT_RESULT;
 			msg->result = size;
 			return 0;
+
 		case MESSAGE_T__OPCODE__OP_GETKEYS:
 			// Fazer a operação na tabela
 			char** keys = table_get_keys(table);
@@ -141,8 +147,8 @@ int invoke(MessageT* msg, struct table_t* table) {
 			msg->keys = keys;
 			msg->n_keys = n_keys;
 			return 0;
-		case MESSAGE_T__OPCODE__OP_GETTABLE:
 
+		case MESSAGE_T__OPCODE__OP_GETTABLE:
 			if (table == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
@@ -182,6 +188,14 @@ int invoke(MessageT* msg, struct table_t* table) {
 			}
 			free(all_entries);
 			return 0;
+
+		case MESSAGE_T__OPCODE__OP_STATS:
+			// É a única operação que não precisamos de chamar funções da table
+			 struct statistics_t server_stats;
+
+			
+			//TODO
+
 		default:
 			// Opcode inválido
 			msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;

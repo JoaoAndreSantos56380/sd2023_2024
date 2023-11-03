@@ -160,6 +160,13 @@ struct entry_t** rtable_get_table(struct rtable_t* rtable) {
 	return entries;
 }
 
+struct statistics_t *rtable_stats(struct rtable_t* rtable) {
+	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
+	message_t__init(request);
+	request->opcode = MESSAGE_T__OPCODE__OP_STATS;
+	request->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+}
+
 void rtable_free_entries(struct entry_t** entries) {
 	if (entries != NULL) {
 		int i = 0;
