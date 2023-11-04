@@ -19,10 +19,8 @@
 #include "message-private.h"
 #include "network_server.h"
 #include "table_skel.h"
+#include "table_skel-private.h"
 #include "stats.h"
-
-// Stats
-struct statistics_t server_stats = {0, 0, 0};
 
 // Mutex para controlar o acesso concorrente à tabela
 pthread_mutex_t table_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -49,18 +47,7 @@ void *client_thread(void *arg) {
             break;
         }
 
-		// Inicializar o start_time antes de chamar invoke
-        struct timeval start_time, end_time;
-        gettimeofday(&start_time, NULL);
-
         invoke(message, table);
-
-		// Atualiza as estatísticas após chamar o invoke
-        gettimeofday(&end_time, NULL);
-        pthread_mutex_lock(&table_mutex);
-        server_stats.num_ops++;
-        server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
-        pthread_mutex_unlock(&table_mutex);
 
         pthread_mutex_unlock(&table_mutex);
         network_send(connsockfd, message);
@@ -68,7 +55,7 @@ void *client_thread(void *arg) {
 
     close(connsockfd);
     printf("Client disconnected\n");
-	server_stats.num_clients_connected--;
+	update_server_stats_clients(1, 1); // Subtrair cliente
 
     free(arg);
     pthread_exit(NULL);
@@ -135,7 +122,7 @@ int network_main_loop(int listening_socket, struct table_t* table) {
             close(connsockfd);
         }
 
-		server_stats.num_clients_connected++;
+		update_server_stats_clients(1, 0); // Incrementar cliente
     }
 
     return 0;

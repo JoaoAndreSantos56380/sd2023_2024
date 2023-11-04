@@ -6,10 +6,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "table_skel.h"
 #include "sdmessage.pb-c.h"
 #include "table-private.h"
 #include "table.h"
 #include "stats.h"
+#include "table_skel-private.h"
+
+// Stats
+struct statistics_t server_stats = {0, 0, 0}; // ATENÇÃO: Verificar se dá erro, talvez tenhamos de inicializar no init do table_skel
 
 struct table_t* table_skel_init(int n_lists) {
 	// Inicializar a tabela com n_lists
@@ -189,17 +194,33 @@ int invoke(MessageT* msg, struct table_t* table) {
 			free(all_entries);
 			return 0;
 
-		case MESSAGE_T__OPCODE__OP_STATS:
-			// É a única operação que não precisamos de chamar funções da table
-			 struct statistics_t server_stats;
-
-			
-			//TODO
+		case MESSAGE_T__OPCODE__OP_STATS: // ATENÇÃO | Como vemos erros no stats?
+			// Atualizar a estrutura MessageT com o resultado
+			msg->opcode = MESSAGE_T__OPCODE__OP_STATS + 1;
+			msg->c_type = MESSAGE_T__C_TYPE__CT_STATS;
+			msg->stats = malloc(sizeof(StatisticsT*));
+			if(msg->stats == NULL) { //Erro ao alocar memória
+				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
+				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+				return -1;
+			}
+			msg->stats->ops = server_stats.num_ops;
+			msg->stats->total_time = server_stats.total_time_microseconds;
+			msg->stats->clients = server_stats.num_clients_connected;
+			return 0;
 
 		default:
 			// Opcode inválido
 			msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
 			return -1;
+	}
+}
+
+void update_server_stats_clients(int n, int op) {
+	if (op == 0) {
+		server_stats.num_clients_connected += n;
+	} else {
+		server_stats.num_clients_connected -= n;
 	}
 }
