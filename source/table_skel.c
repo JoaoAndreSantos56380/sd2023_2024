@@ -46,6 +46,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 	// Verificar qual o opcode e realizar a operação de acordo com esse opcode.
 	switch (msg->opcode) {
 		case MESSAGE_T__OPCODE__OP_PUT:
+			// Inicializar o start_time para os stats
+        	struct timeval start_time, end_time;
+        	gettimeofday(&start_time, NULL);
+
 			// Verificar se os campos da mensagem são válidos
 			if (msg->entry == NULL || msg->entry->key == NULL || msg->entry->value.data == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
@@ -68,9 +72,19 @@ int invoke(MessageT* msg, struct table_t* table) {
 			msg->opcode = MESSAGE_T__OPCODE__OP_PUT + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
 			data_destroy(data);
+
+			// Atualizar os stats (tempo e num_ops)
+			gettimeofday(&end_time, NULL);
+			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
+			server_stats.num_ops += 1;
+
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_GET:
+			// Inicializar o start_time para os stats
+        	struct timeval start_time, end_time;
+        	gettimeofday(&start_time, NULL);
+
 			// Verificar se o campo da mensagem é válido
 			if (msg->key == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
@@ -92,9 +106,19 @@ int invoke(MessageT* msg, struct table_t* table) {
 			msg->c_type = MESSAGE_T__C_TYPE__CT_VALUE;
 			msg->value.data = result_data->data;
 			msg->value.len = result_data->datasize;
+
+			// Atualizar os stats (tempo e num_ops)
+			gettimeofday(&end_time, NULL);
+			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
+			server_stats.num_ops += 1;
+			
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_DEL:
+			// Inicializar o start_time para os stats
+        	struct timeval start_time, end_time;
+        	gettimeofday(&start_time, NULL);
+
 			// Verificar se o campo da mensagem é válido
 			if (msg->key == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
@@ -115,9 +139,19 @@ int invoke(MessageT* msg, struct table_t* table) {
 			// Atualizar a estrutura MessageT com o resultado
 			msg->opcode = MESSAGE_T__OPCODE__OP_DEL + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+			// Atualizar os stats (tempo e num_ops)
+			gettimeofday(&end_time, NULL);
+			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
+			server_stats.num_ops += 1;
+
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_SIZE:
+			// Inicializar o start_time para os stats
+        	struct timeval start_time, end_time;
+        	gettimeofday(&start_time, NULL);
+
 			// Fazer a operação na tabela
 			int size = table_size(table);
 
@@ -132,9 +166,19 @@ int invoke(MessageT* msg, struct table_t* table) {
 			msg->opcode = MESSAGE_T__OPCODE__OP_SIZE + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_RESULT;
 			msg->result = size;
+
+			// Atualizar os stats (tempo e num_ops)
+			gettimeofday(&end_time, NULL);
+			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
+			server_stats.num_ops += 1;
+
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_GETKEYS:
+			// Inicializar o start_time para os stats
+        	struct timeval start_time, end_time;
+        	gettimeofday(&start_time, NULL);
+
 			// Fazer a operação na tabela
 			char** keys = table_get_keys(table);
 			size_t n_keys = table_size(table);
@@ -151,9 +195,19 @@ int invoke(MessageT* msg, struct table_t* table) {
 			msg->c_type = MESSAGE_T__C_TYPE__CT_KEYS;
 			msg->keys = keys;
 			msg->n_keys = n_keys;
+
+			// Atualizar os stats (tempo e num_ops)
+			gettimeofday(&end_time, NULL);
+			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
+			server_stats.num_ops += 1;
+
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_GETTABLE:
+			// Inicializar o start_time para os stats
+        	struct timeval start_time, end_time;
+        	gettimeofday(&start_time, NULL);
+			
 			if (table == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
@@ -192,6 +246,12 @@ int invoke(MessageT* msg, struct table_t* table) {
 				entry_destroy(all_entries[i]);
 			}
 			free(all_entries);
+
+			// Atualizar os stats (tempo e num_ops)
+			gettimeofday(&end_time, NULL);
+			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
+			server_stats.num_ops += 1;
+			
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_STATS: // ATENÇÃO | Como vemos erros no stats?

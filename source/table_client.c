@@ -297,5 +297,7 @@ void executeStats(struct rtable_t* rtable) {
 		return;
 	}
 	printf("\n #######Stats successful####### \n");
-	
+	printf("Number of operations made in total: %d\n", stats->num_ops);
+	printf("Total time of all the operations: %d\n", stats->total_time_microseconds);
+	printf("Number of clients connected: %d\n", stats->num_clients_connected);
 }
