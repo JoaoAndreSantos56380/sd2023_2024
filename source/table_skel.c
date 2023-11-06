@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "table_skel.h"
 #include "sdmessage.pb-c.h"
@@ -43,11 +44,11 @@ int invoke(MessageT* msg, struct table_t* table) {
 		return -1;
 	}
 
+	struct timeval start_time, end_time;
 	// Verificar qual o opcode e realizar a operação de acordo com esse opcode.
 	switch (msg->opcode) {
 		case MESSAGE_T__OPCODE__OP_PUT:
 			// Inicializar o start_time para os stats
-        	struct timeval start_time, end_time;
         	gettimeofday(&start_time, NULL);
 
 			// Verificar se os campos da mensagem são válidos
@@ -82,7 +83,6 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 		case MESSAGE_T__OPCODE__OP_GET:
 			// Inicializar o start_time para os stats
-        	struct timeval start_time, end_time;
         	gettimeofday(&start_time, NULL);
 
 			// Verificar se o campo da mensagem é válido
@@ -116,7 +116,6 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 		case MESSAGE_T__OPCODE__OP_DEL:
 			// Inicializar o start_time para os stats
-        	struct timeval start_time, end_time;
         	gettimeofday(&start_time, NULL);
 
 			// Verificar se o campo da mensagem é válido
@@ -149,7 +148,6 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 		case MESSAGE_T__OPCODE__OP_SIZE:
 			// Inicializar o start_time para os stats
-        	struct timeval start_time, end_time;
         	gettimeofday(&start_time, NULL);
 
 			// Fazer a operação na tabela
@@ -176,7 +174,6 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 		case MESSAGE_T__OPCODE__OP_GETKEYS:
 			// Inicializar o start_time para os stats
-        	struct timeval start_time, end_time;
         	gettimeofday(&start_time, NULL);
 
 			// Fazer a operação na tabela
@@ -205,7 +202,6 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 		case MESSAGE_T__OPCODE__OP_GETTABLE:
 			// Inicializar o start_time para os stats
-        	struct timeval start_time, end_time;
         	gettimeofday(&start_time, NULL);
 			
 			if (table == NULL) {
@@ -258,15 +254,17 @@ int invoke(MessageT* msg, struct table_t* table) {
 			// Atualizar a estrutura MessageT com o resultado
 			msg->opcode = MESSAGE_T__OPCODE__OP_STATS + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_STATS;
-			msg->stats = malloc(sizeof(StatisticsT*));
+			msg->stats = (StatisticsT*)malloc(sizeof(StatisticsT));
+			statistics_t__init(msg->stats);
 			if(msg->stats == NULL) { //Erro ao alocar memória
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
 				return -1;
 			}
-			msg->stats->ops = server_stats.num_ops;
-			msg->stats->total_time = server_stats.total_time_microseconds;
-			msg->stats->clients = server_stats.num_clients_connected;
+			msg->stats->ops = (int32_t)server_stats.num_ops;
+			msg->stats->total_time = (uint64_t)server_stats.total_time_microseconds;
+			msg->stats->clients = (int32_t)server_stats.num_clients_connected;
+
 			return 0;
 
 		default:

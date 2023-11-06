@@ -147,7 +147,7 @@ int commandIsGetKeys(char* option) {
 }
 
 int commandIsStats(char* option) {
-	return strncmp(option, GET_KEYS, strlen(STATS)) == 0;
+	return strncmp(option, STATS, strlen(STATS)) == 0;
 }
 
 void executePut(struct rtable_t* rtable, char* option) {
@@ -298,6 +298,6 @@ void executeStats(struct rtable_t* rtable) {
 	}
 	printf("\n #######Stats successful####### \n");
 	printf("Number of operations made in total: %d\n", stats->num_ops);
-	printf("Total time of all the operations: %d\n", stats->total_time_microseconds);
+	printf("Total time of all the operations: %ld\n", stats->total_time_microseconds);
 	printf("Number of clients connected: %d\n", stats->num_clients_connected);
 }

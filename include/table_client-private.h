@@ -115,4 +115,12 @@ void executeGetTable(struct rtable_t* r_table);
  */
 void executeGetKeys(struct rtable_t* rtable);
 
+/*
+ * Função que imprime as estatísticas do servidor, sendo estas:
+ * - nº total de operações realizadas (sem contar com o stats);
+ * - tempo total acumulado gasto na execução de operações na tabela;
+ * - nº total de cliente atualmente ligados ao servidor.
+ */
+void executeStats(struct rtable_t* rtable);
+
 #endif

@@ -17,6 +17,7 @@
 #include "message-private.h"
 #include "network_server.h"
 #include "table_skel.h"
+#include "table_skel-private.h"
 
 int client_socket;
 int network_server_init(short port) {
@@ -63,6 +64,7 @@ int network_main_loop(int listening_socket, struct table_t* table) {
 	socklen_t client_info_len = sizeof(client_info);
 	while ((client_socket = accept(listening_socket, &client_info, &client_info_len)) > 0) {
 		printf("Client connected\n");
+		update_server_stats_clients(1, 0);
 
 		struct message_t* msg;
 		while ((msg = network_receive(client_socket)) != NULL) {
@@ -71,6 +73,7 @@ int network_main_loop(int listening_socket, struct table_t* table) {
 		}
 		close(client_socket);
 		printf("Client disconnected\n");
+		update_server_stats_clients(1, 1);
 	}
 	return 0;
 }

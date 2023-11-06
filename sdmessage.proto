@@ -53,7 +53,7 @@ message message_t			/* Formato da mensagem MessageT */
 	sint32		result	= 6;
 	repeated string	keys		= 7;
 	repeated entry_t	entries	= 8;
-	statistics_t	stats	= 9;
+	statistics_t stats = 9;
 };
 
 
