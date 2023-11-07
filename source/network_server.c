@@ -111,27 +111,60 @@ int network_server_init(short port) {
 	return listening_socket;
 }
 
+// ... other includes and code ...
+
+// Define the new struct type
+struct client_data {
+	int client_socket;
+	struct table_t* table;
+};
+
+void* client_handler(void* arg) {
+	struct client_data* data = (struct client_data*)arg;
+
+	printf("Client connected\n");
+
+	struct message_t* msg;
+	while ((msg = network_receive(data->client_socket)) != NULL) {
+		invoke(msg, data->table);
+		network_send(data->client_socket, msg);
+	}
+
+	close(data->client_socket);
+	printf("Client disconnected\n");
+
+	free(data);	 // Free the allocated struct
+
+	return NULL;
+}
+
 int network_main_loop(int listening_socket, struct table_t* table) {
-	table_tt = table;
 	struct sockaddr client_info = {0};
 	socklen_t client_info_len = sizeof(client_info);
 	while (1) {
-		int* new_sock = malloc(sizeof(int));
-		if ((*new_sock = accept(listening_socket, &client_info, &client_info_len)) > 0) {
+		struct client_data* data = malloc(sizeof(struct client_data));
+		if (data == NULL) {
+			perror("malloc");
+			continue;
+		}
+		data->client_socket = accept(listening_socket, &client_info, &client_info_len);
+		if (data->client_socket > 0) {
+			data->table = table;
 			pthread_t thread_id;
-			if (pthread_create(&thread_id, NULL, client_thread, (void*)new_sock) < 0) {
+			if (pthread_create(&thread_id, NULL, client_handler, (void*)data) < 0) {
 				perror("could not create thread");
-				free(new_sock);
+				free(data);
 				continue;
 			}
 			// Optionally, detach the thread so that resources are automatically reclaimed upon thread termination.
 			pthread_detach(thread_id);
 		} else {
-			free(new_sock);  // If accept failed, we need to free the allocated memory.
+			free(data);	 // If accept failed, we need to free the allocated memory.
 		}
 	}
 	return 0;
 }
+
 struct message_t* network_receive(int client_socket) {
 	// Receive size
 	short num = 0;
