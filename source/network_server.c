@@ -26,51 +26,7 @@ pthread_mutex_t table_mutex = PTHREAD_MUTEX_INITIALIZER;
 // Para fechar o servidor e as threads
 pthread_cond_t server_shutdown = PTHREAD_COND_INITIALIZER;
 bool server_running = true;
-struct table_t* table_tt;
-// Função usada para atender cada cliente numa nova thread
-void *client_thread(void *arg) {
-	int client_socket = *(int*)arg;
-	free(arg);	// We allocated a pointer for each client, make sure to free it.
 
-	printf("Client connected\n");
-
-	struct message_t* msg;
-	while ((msg = network_receive(client_socket)) != NULL) {
-		invoke(msg, table_tt);
-		network_send(client_socket, msg);
-	}
-
-	close(client_socket);
-	printf("Client disconnected\n");
-
-	return NULL;
-	/*     int connsockfd = *((int *)arg);
-		 struct table_t* table = (struct table_t*)arg;
-
-		 printf("Client connected\n");
-
-		 struct message_t* message;
-		 while ((message = network_receive(connsockfd)) != NULL) {
-			  // Bloqueia o mutex antes de acessar a tabela
-			  //pthread_mutex_lock(&table_mutex);
-
-			  // Verifica se o servidor ainda está running, se não estiver dá unlock e sai do while
-			  if (!server_running) {
-				  // pthread_mutex_unlock(&table_mutex);
-					break;
-			  }
-
-			  invoke(message, table);
-			  //pthread_mutex_unlock(&table_mutex);
-			  network_send(connsockfd, message);
-		 }
-
-		 close(connsockfd);
-		 printf("Client disconnected\n");
-
-		 free(arg);
-		 pthread_exit(NULL); */
-}
 
 int network_server_init(short port) {
 	// socket info struct
@@ -110,8 +66,6 @@ int network_server_init(short port) {
 
 	return listening_socket;
 }
-
-// ... other includes and code ...
 
 // Define the new struct type
 struct client_data {
