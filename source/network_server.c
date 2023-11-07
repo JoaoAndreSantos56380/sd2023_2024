@@ -13,13 +13,45 @@
 #include <sys/types.h>
 #include <table.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "message-private.h"
 #include "network_server.h"
 #include "table_skel.h"
 #include "table_skel-private.h"
 
+volatile sig_atomic_t server_running = 1;
 int client_socket;
+struct ThreadData {
+    int client_socket;
+    struct table_t *table;
+};
+
+void sigint_handler(int signum) {
+    server_running = 0;
+}
+
+// Função que será executada por cada thread secundária para atender um cliente.
+void *client_handler(void *arg) {
+    struct ThreadData *data = (struct ThreadData *)arg;
+    int client_socket = data->client_socket;
+    struct table_t *table = data->table;
+    
+    struct message_t *msg;
+    while ((msg = network_receive(client_socket)) != NULL) {
+        invoke(msg, table);
+        network_send(client_socket, msg);
+    }
+    close(client_socket);
+    free(msg);
+    free(data);
+
+	printf("Client disconnected\n");
+	update_server_stats_clients(1, 1); // Decrementa o número de clientes ativos quando um cliente é desconectado
+    
+    return NULL;
+}
+
 int network_server_init(short port) {
 	// socket info struct
 	int listening_socket;
@@ -59,23 +91,43 @@ int network_server_init(short port) {
 	return listening_socket;
 }
 
-int network_main_loop(int listening_socket, struct table_t* table) {
-	struct sockaddr client_info = {0};
-	socklen_t client_info_len = sizeof(client_info);
-	while ((client_socket = accept(listening_socket, &client_info, &client_info_len)) > 0) {
-		printf("Client connected\n");
-		update_server_stats_clients(1, 0);
+int network_main_loop(int listening_socket, struct table_t *table) {
+    struct sockaddr client_info = {0};
+    socklen_t client_info_len = sizeof(client_info);
+    pthread_t thread_id;
 
-		struct message_t* msg;
-		while ((msg = network_receive(client_socket)) != NULL) {
-			invoke(msg, table);
-			network_send(client_socket, msg);
-		}
-		close(client_socket);
-		printf("Client disconnected\n");
-		update_server_stats_clients(1, 1);
-	}
-	return 0;
+    while (server_running) {
+        int client_socket = accept(listening_socket, &client_info, &client_info_len);
+        if (client_socket < 0) {
+            if (errno == EINTR && !server_running) {
+                break; // Encerrar o servidor quando o sinal SIGINT é recebido
+            } else {
+                perror("accept");
+                continue;
+            }
+        }
+
+        printf("Client connected\n");
+        update_server_stats_clients(1, 0);
+
+        struct ThreadData *data = (struct ThreadData *)malloc(sizeof(struct ThreadData));
+        if (data == NULL) {
+            perror("malloc");
+            continue;
+        }
+        data->client_socket = client_socket;
+        data->table = table;
+
+        if (pthread_create(&thread_id, NULL, client_handler, data) != 0) {
+            perror("pthread_create");
+            free(data);
+            continue;
+        }
+        pthread_detach(thread_id);
+
+    }
+
+    return 0;
 }
 
 struct message_t* network_receive(int client_socket) {
@@ -131,6 +183,5 @@ int network_send(int client_socket, struct message_t* msg) {
 
 int network_server_close(int socket) {
 	close(socket);			  // Não aceita novas ligações de clientes
-	close(client_socket);  // Fecha as ligações atuais
 	return 0;
 }

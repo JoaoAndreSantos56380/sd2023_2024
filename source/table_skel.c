@@ -15,11 +15,15 @@
 #include "table_skel-private.h"
 
 // Stats
-struct statistics_t server_stats = {0, 0, 0}; // ATENÇÃO: Verificar se dá erro, talvez tenhamos de inicializar no init do table_skel
+struct statistics_t server_stats; // ATENÇÃO: Verificar se dá erro, talvez tenhamos de inicializar no init do table_skel
 
 struct table_t* table_skel_init(int n_lists) {
 	// Inicializar a tabela com n_lists
 	struct table_t* table = table_create(n_lists);
+	//server_stats = malloc(sizeof(statistics_t));
+	server_stats.num_clients_connected = 0;
+	server_stats.num_ops = 0;
+	server_stats.total_time_microseconds = 0;
 
 	return table;
 }
