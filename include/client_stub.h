@@ -61,6 +61,14 @@ void rtable_free_keys(char **keys);
  */
 struct entry_t **rtable_get_table(struct rtable_t *rtable);
 
+/*
+ * Retorna o tipo statistics_t com as estatísticas do servidor, contendo:
+ * - O número de operações realizadas;
+ * - O tempo total gasto na realização das operações;
+ * - O número atual de clientes conectados.
+ */
+struct statistics_t *rtable_stats(struct rtable_t* rtable);
+
 /* Liberta a memória alocada por rtable_get_table().
  */
 void rtable_free_entries(struct entry_t **entries);

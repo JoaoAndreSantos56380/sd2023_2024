@@ -15,18 +15,44 @@
 #include <sys/types.h>
 #include <table.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "message-private.h"
 #include "network_server.h"
 #include "table_skel.h"
+#include "table_skel-private.h"
 
-// Mutex para controlar o acesso concorrente à tabela
-pthread_mutex_t table_mutex = PTHREAD_MUTEX_INITIALIZER;
+volatile sig_atomic_t server_running = 1;
+int client_socket;
+struct ThreadData {
+    int client_socket;
+    struct table_t *table;
+};
 
-// Para fechar o servidor e as threads
-pthread_cond_t server_shutdown = PTHREAD_COND_INITIALIZER;
-bool server_running = true;
+void sigint_handler(int signum) {
+    server_running = 0;
+}
 
+// Função que será executada por cada thread secundária para atender um cliente.
+void *client_handler(void *arg) {
+    struct ThreadData *data = (struct ThreadData *)arg;
+    int client_socket = data->client_socket;
+    struct table_t *table = data->table;
+
+    struct message_t *msg;
+    while ((msg = network_receive(client_socket)) != NULL) {
+        invoke(msg, table);
+        network_send(client_socket, msg);
+    }
+    close(client_socket);
+    free(msg);
+    free(data);
+
+	printf("Client disconnected\n");
+	update_server_stats_clients(1, 1); // Decrementa o número de clientes ativos quando um cliente é desconectado
+
+    return NULL;
+}
 
 int network_server_init(short port) {
 	// socket info struct
@@ -67,56 +93,43 @@ int network_server_init(short port) {
 	return listening_socket;
 }
 
-// Define the new struct type
-struct client_data {
-	int client_socket;
-	struct table_t* table;
-};
+int network_main_loop(int listening_socket, struct table_t *table) {
+    struct sockaddr client_info = {0};
+    socklen_t client_info_len = sizeof(client_info);
+    pthread_t thread_id;
 
-void* client_handler(void* arg) {
-	struct client_data* data = (struct client_data*)arg;
+    while (server_running) {
+        int client_socket = accept(listening_socket, &client_info, &client_info_len);
+        if (client_socket < 0) {
+            if (errno == EINTR && !server_running) {
+                break; // Encerrar o servidor quando o sinal SIGINT é recebido
+            } else {
+                perror("accept");
+                continue;
+            }
+        }
 
-	printf("Client connected\n");
+        printf("Client connected\n");
+        update_server_stats_clients(1, 0);
 
-	struct message_t* msg;
-	while ((msg = network_receive(data->client_socket)) != NULL) {
-		invoke(msg, data->table);
-		network_send(data->client_socket, msg);
-	}
+        struct ThreadData *data = (struct ThreadData *)malloc(sizeof(struct ThreadData));
+        if (data == NULL) {
+            perror("malloc");
+            continue;
+        }
+        data->client_socket = client_socket;
+        data->table = table;
 
-	close(data->client_socket);
-	printf("Client disconnected\n");
+        if (pthread_create(&thread_id, NULL, client_handler, data) != 0) {
+            perror("pthread_create");
+            free(data);
+            continue;
+        }
+        pthread_detach(thread_id);
 
-	free(data);	 // Free the allocated struct
+    }
 
-	return NULL;
-}
-
-int network_main_loop(int listening_socket, struct table_t* table) {
-	struct sockaddr client_info = {0};
-	socklen_t client_info_len = sizeof(client_info);
-	while (1) {
-		struct client_data* data = malloc(sizeof(struct client_data));
-		if (data == NULL) {
-			perror("malloc");
-			continue;
-		}
-		data->client_socket = accept(listening_socket, &client_info, &client_info_len);
-		if (data->client_socket > 0) {
-			data->table = table;
-			pthread_t thread_id;
-			if (pthread_create(&thread_id, NULL, client_handler, (void*)data) < 0) {
-				perror("could not create thread");
-				free(data);
-				continue;
-			}
-			// Optionally, detach the thread so that resources are automatically reclaimed upon thread termination.
-			pthread_detach(thread_id);
-		} else {
-			free(data);	 // If accept failed, we need to free the allocated memory.
-		}
-	}
-	return 0;
+    return 0;
 }
 
 struct message_t* network_receive(int client_socket) {
@@ -170,16 +183,7 @@ int network_send(int client_socket, struct message_t* msg) {
 	return num_bytes_written;
 }
 
-
-int network_server_close(int listening_socket) {
-    // Sinaliza que o servidor está a fechar
-    server_running = false;
-
-    // Aguarda que todas as threads secundárias terminem
-    pthread_cond_broadcast(&server_shutdown);
-
-    // Fecha o socket do servidor
-    close(listening_socket);
-
-    return 0;
+int network_server_close(int socket) {
+	close(socket);			  // Não aceita novas ligações de clientes
+	return 0;
 }

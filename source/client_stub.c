@@ -11,6 +11,7 @@
 #include "message-private.h"
 #include "network_client.h"
 #include "sdmessage.pb-c.h"
+#include "stats.h"
 
 struct rtable_t* rtable_connect(char* address_port) {
 	char* adrsport = (char*)malloc(strlen(address_port) + 1);
@@ -158,6 +159,27 @@ struct entry_t** rtable_get_table(struct rtable_t* rtable) {
 	entries[i] = NULL;
 	message_t__free_unpacked(response, NULL);
 	return entries;
+}
+
+struct statistics_t *rtable_stats(struct rtable_t* rtable) {
+	struct message_t* request = (struct message_t*)malloc(sizeof(struct message_t));
+	message_t__init(request);
+	request->opcode = MESSAGE_T__OPCODE__OP_STATS;
+	request->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+	struct message_t* response = network_send_receive(rtable, request);
+	free(request);
+	if (response->opcode == MESSAGE_T__OPCODE__OP_ERROR) {
+		message_t__free_unpacked(response, NULL);
+		return NULL;
+	}
+
+	struct statistics_t* stats = (struct statistics_t*)malloc(sizeof(struct statistics_t));
+	stats->num_clients_connected = response->stats->clients;
+	stats->num_ops = response->stats->ops;
+	stats->total_time_microseconds = response->stats->total_time;
+
+	return stats;
 }
 
 void rtable_free_entries(struct entry_t** entries) {

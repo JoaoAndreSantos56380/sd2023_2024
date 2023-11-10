@@ -14,6 +14,7 @@
 #include "entry.h"
 #include "sdmessage.pb-c.h"
 #include "table_client-private.h"
+#include "stats.h"
 
 #define PUT "put"
 #define GET "get"
@@ -22,6 +23,7 @@
 #define QUIT "quit"
 #define GET_KEYS "getkeys"
 #define GETTABLE "gettable"
+#define STATS "stats"
 
 int main(int argc, char const* argv[]) {
 	if (argc < 2) {
@@ -81,6 +83,8 @@ int main(int argc, char const* argv[]) {
 			executeDel(rtable, option);
 		} else if (commandIsSize(option)) {
 			executeSize(rtable);
+		} else if(commandIsStats(option)) {
+			executeStats(rtable);
 		} else if (!commandIsQuit(option)) {
 			printf("Please input a valid command.\n");
 		}
@@ -104,6 +108,7 @@ void showMenu() {
 	printf("size\n");
 	printf("getkeys\n");
 	printf("gettable\n");
+	printf("stats\n");
 	printf("quit\n");
 	printf("Option: ");
 }
@@ -139,6 +144,10 @@ int commandIsGetTable(char* option) {
 
 int commandIsGetKeys(char* option) {
 	return strncmp(option, GET_KEYS, strlen(GET_KEYS)) == 0;
+}
+
+int commandIsStats(char* option) {
+	return strncmp(option, STATS, strlen(STATS)) == 0;
 }
 
 void executePut(struct rtable_t* rtable, char* option) {
@@ -279,4 +288,16 @@ void executeGetTable(struct rtable_t* rtable) {
 		printf("\n");
 	}
 	free(entries);
+}
+
+void executeStats(struct rtable_t* rtable) {
+	struct statistics_t* stats = rtable_stats(rtable);
+	if (stats == NULL) {
+		printf("\nStats failed\n");
+		return;
+	}
+	printf("\n #######Stats successful####### \n");
+	printf("Number of operations made in total: %d\n", stats->num_ops);
+	printf("Total time of all the operations: %ld\n", stats->total_time_microseconds);
+	printf("Number of clients connected: %d\n", stats->num_clients_connected);
 }

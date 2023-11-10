@@ -52,6 +52,13 @@ int commandIsDel(char* option);
 int commandIsSize(char* option);
 
 /*
+ * Função que verifica se a opção passada é do tipo "stats".
+ * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
+ * valor diferente de 0.
+ */
+int commandIsStats(char* option);
+
+/*
  * Função que verifica se a opção passada é do tipo "quit".
  * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
  * valor diferente de 0.
@@ -107,5 +114,13 @@ void executeGetTable(struct rtable_t* r_table);
  * ao programa são os errados.
  */
 void executeGetKeys(struct rtable_t* rtable);
+
+/*
+ * Função que imprime as estatísticas do servidor, sendo estas:
+ * - nº total de operações realizadas (sem contar com o stats);
+ * - tempo total acumulado gasto na execução de operações na tabela;
+ * - nº total de cliente atualmente ligados ao servidor.
+ */
+void executeStats(struct rtable_t* rtable);
 
 #endif
