@@ -3,6 +3,7 @@
 // Rafael Ferreira 57544
 // Ricardo Mateus 56366
 #include <errno.h>
+#include <math.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <pthread.h>
@@ -16,38 +17,18 @@
 #include <table.h>
 #include <unistd.h>
 
+#include "list-private.h"
+#include "list.h"
 #include "message-private.h"
+#include "network_server-private.h"
 #include "network_server.h"
 #include "table_skel-private.h"
 #include "table_skel.h"
 
 volatile sig_atomic_t server_running = 1;
 int client_socket;
-struct ThreadData {
-	int client_socket;
-	struct table_t* table;
-};
-
-// Função que será executada por cada thread secundária para atender um cliente.
-void* client_handler(void* arg) {
-	struct ThreadData* data = (struct ThreadData*)arg;
-	int client_socket = data->client_socket;
-	struct table_t* table = data->table;
-
-	struct message_t* msg;
-	while ((msg = network_receive(client_socket)) != NULL) {
-		invoke(msg, table);
-		network_send(client_socket, msg);
-	}
-	close(client_socket);
-	free(msg);
-	free(data);
-
-	printf("Client disconnected\n");
-	update_server_stats_clients(1, 1);	// Decrementa o número de clientes ativos quando um cliente é desconectado
-
-	return NULL;
-}
+struct list_t* thread_info_list = NULL;
+int next_thread_number = 1;
 
 int network_server_init(short port) {
 	// socket info struct
@@ -89,10 +70,13 @@ int network_server_init(short port) {
 }
 
 int network_main_loop(int listening_socket, struct table_t* table) {
+	thread_info_list = list_create();
+	if (thread_info_list == NULL) {
+		return -1;
+	}
 	struct sockaddr client_info = {0};
 	socklen_t client_info_len = sizeof(client_info);
 	pthread_t thread_id;
-
 	while (server_running) {
 		int client_socket = accept(listening_socket, &client_info, &client_info_len);
 		// If server was asked to close, skip current connections
@@ -107,23 +91,71 @@ int network_main_loop(int listening_socket, struct table_t* table) {
 		printf("Client connected\n");
 		update_server_stats_clients(1, 0);
 
-		struct ThreadData* data = (struct ThreadData*)malloc(sizeof(struct ThreadData));
-		if (data == NULL) {
+		struct ThreadArgs* thread_args = (struct ThreadArgs*)malloc(sizeof(struct ThreadArgs));
+		if (thread_args == NULL) {
 			perror("malloc");
 			continue;
 		}
-		data->client_socket = client_socket;
-		data->table = table;
+		thread_args->client_socket = client_socket;
+		thread_args->table = table;
 
-		if (pthread_create(&thread_id, NULL, client_handler, data) != 0) {
+		if (pthread_create(&thread_id, NULL, client_handler, thread_args) != 0) {
 			perror("pthread_create");
-			free(data);
+			free(thread_args);
 			continue;
 		}
-		pthread_detach(thread_id);
+
+		// Create data
+		int size = sizeof(struct ThreadInfo);
+		struct ThreadInfo* thread_info = (struct ThreadInfo*)malloc(size);
+		struct data_t* data = data_create(size, thread_info);
+		if (data == NULL) {
+			return -1;
+		}
+
+		// Create entry
+		int num_of_chars = (int)(ceil(log10(next_thread_number)) + 1);
+		char key[7 + num_of_chars];
+		sprintf(key, "thread_%d", next_thread_number++);
+		struct entry_t* entry = entry_create(key, data);
+		if (entry == NULL) {
+			data_destroy(data);
+			return -1;
+		}
+
+		// Add entry to list
+		if (list_add(thread_info_list, entry) == -1) {
+			printf("List add failed\n");
+			return -1;
+		}
 	}
+	list_destroy(thread_info_list);
 
 	return 0;
+}
+
+// Função que será executada por cada thread secundária para atender um cliente.
+void* client_handler(void* arg) {
+	struct ThreadArgs* data = (struct ThreadArgs*)arg;
+	int client_socket = data->client_socket;
+	struct table_t* table = data->table;
+
+	struct message_t* msg;
+	while ((msg = network_receive(client_socket)) != NULL) {
+		invoke(msg, table);
+		network_send(client_socket, msg);
+	}
+	// If the server was NOT requested to close, then it was the client who decided to terminate
+	if (server_running) {
+		close(client_socket);
+	}
+	free(msg);
+	free(data);
+
+	printf("Client disconnected\n");
+	update_server_stats_clients(1, 1);	// Decrementa o número de clientes ativos quando um cliente é desconectado
+
+	return NULL;
 }
 
 struct message_t* network_receive(int client_socket) {
@@ -178,7 +210,34 @@ int network_send(int client_socket, struct message_t* msg) {
 }
 
 int network_server_close(int socket) {
-	close(socket);			// Não aceita novas ligações de clientes
-	server_running = 0;	// Close network server
+	server_running = 0;	// Signal server and its threads to close
+
+	close(socket);	 // Unblock listening socket
+
+	// Unblock client sockets
+	for (int i = 1; i < next_thread_number; i++) {
+		int num_of_chars = (int)(ceil(log10(i)) + 1);
+		char key[7 + num_of_chars];
+		sprintf(key, "thread_%d", i);
+		if (list_size(thread_info_list) > 0) {
+			struct entry_t* entry = list_get(thread_info_list, key);
+			struct ThreadInfo* thread_info = (struct ThreadInfo*)entry->value->data;
+			close(thread_info->client_socket);
+			list_remove(thread_info_list, key);
+		}
+	}
+
+	// Wait for all threads to close
+	for (int i = 1; i < next_thread_number; i++) {
+		int num_of_chars = (int)(ceil(log10(i)) + 1);
+		char key[7 + num_of_chars];
+		sprintf(key, "thread_%d", i);
+		if (list_size(thread_info_list) > 0) {
+			struct entry_t* entry = list_get(thread_info_list, key);
+			struct ThreadInfo* thread_info = (struct ThreadInfo*)entry->value->data;
+			pthread_join(thread_info->pthread, NULL);
+		}
+	}
+
 	return 0;
 }
