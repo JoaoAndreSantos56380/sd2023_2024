@@ -66,7 +66,7 @@ build:
 	mkdir $(OBJ_DIR)
 	mkdir $(BIN_DIR)
 
-sdmessage.pb-c.o:
+$(OBJ_DIR)/sdmessage.pb-c.o:
 	protoc --c_out=. sdmessage.proto
 	mv sdmessage.pb-c.c source
 	mv sdmessage.pb-c.h include
