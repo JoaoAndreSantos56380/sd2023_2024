@@ -2,28 +2,44 @@
 // Joao Santos 56380
 // Rafael Ferreira 57544
 // Ricardo Mateus 56366
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 
-#include "table_skel.h"
 #include "sdmessage.pb-c.h"
+#include "stats.h"
 #include "table-private.h"
 #include "table.h"
-#include "stats.h"
 #include "table_skel-private.h"
+#include "table_skel.h"
+
+pthread_mutex_t table_lock;
+pthread_mutex_t stats_lock;
 
 // Stats
-struct statistics_t server_stats; // ATENÇÃO: Verificar se dá erro, talvez tenhamos de inicializar no init do table_skel
+struct statistics_t server_stats;  // ATENÇÃO: Verificar se dá erro, talvez tenhamos de inicializar no init do table_skel
 
 struct table_t* table_skel_init(int n_lists) {
 	// Inicializar a tabela com n_lists
 	struct table_t* table = table_create(n_lists);
-	//server_stats = malloc(sizeof(statistics_t));
+
+	// server_stats = malloc(sizeof(statistics_t));
 	server_stats.num_clients_connected = 0;
 	server_stats.num_ops = 0;
 	server_stats.total_time_microseconds = 0;
+
+	// Inicializar o table_lock
+	if (pthread_mutex_init(&table_lock, NULL) != 0) {
+		printf("Table mutex init has failed\n");
+		return NULL;
+	}
+	// Inicializar o stats_lock
+	if (pthread_mutex_init(&stats_lock, NULL) != 0) {
+		printf("Stats mutex init has failed\n");
+		return NULL;
+	}
 
 	return table;
 }
@@ -36,6 +52,10 @@ int table_skel_destroy(struct table_t* table) {
 
 	// Destruir a tabela
 	table_destroy(table);
+
+	// Destroy mutexes
+	pthread_mutex_destroy(&table_lock);
+	pthread_mutex_destroy(&stats_lock);
 
 	return 0;
 }
@@ -53,7 +73,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 	switch (msg->opcode) {
 		case MESSAGE_T__OPCODE__OP_PUT:
 			// Inicializar o start_time para os stats
-        	gettimeofday(&start_time, NULL);
+			gettimeofday(&start_time, NULL);
 
 			// Verificar se os campos da mensagem são válidos
 			if (msg->entry == NULL || msg->entry->key == NULL || msg->entry->value.data == NULL) {
@@ -63,8 +83,9 @@ int invoke(MessageT* msg, struct table_t* table) {
 			}
 			// Fazer a operação na tabela
 			struct data_t* data = data_create(msg->entry->value.len, msg->entry->value.data);
-
+			pthread_mutex_lock(&table_lock);
 			int result = table_put(table, msg->entry->key, data);
+			pthread_mutex_unlock(&table_lock);
 
 			// Erro ao colocar na table
 			if (result == -1) {
@@ -80,14 +101,13 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			// Atualizar os stats (tempo e num_ops)
 			gettimeofday(&end_time, NULL);
-			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
-			server_stats.num_ops += 1;
+			update_stats(start_time, end_time);
 
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_GET:
 			// Inicializar o start_time para os stats
-        	gettimeofday(&start_time, NULL);
+			gettimeofday(&start_time, NULL);
 
 			// Verificar se o campo da mensagem é válido
 			if (msg->key == NULL) {
@@ -97,7 +117,9 @@ int invoke(MessageT* msg, struct table_t* table) {
 			}
 
 			// Fazer a operação na tabela
+			pthread_mutex_lock(&table_lock);
 			struct data_t* result_data = table_get(table, msg->key);
+			pthread_mutex_unlock(&table_lock);
 			// Erro ao buscar da table
 			if (result_data == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
@@ -113,14 +135,13 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			// Atualizar os stats (tempo e num_ops)
 			gettimeofday(&end_time, NULL);
-			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
-			server_stats.num_ops += 1;
-			
+			update_stats(start_time, end_time);
+
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_DEL:
 			// Inicializar o start_time para os stats
-        	gettimeofday(&start_time, NULL);
+			gettimeofday(&start_time, NULL);
 
 			// Verificar se o campo da mensagem é válido
 			if (msg->key == NULL) {
@@ -130,7 +151,9 @@ int invoke(MessageT* msg, struct table_t* table) {
 			}
 
 			// Fazer a operação na tabela
+			pthread_mutex_lock(&table_lock);
 			int del_result = table_remove(table, msg->key);
+			pthread_mutex_unlock(&table_lock);
 
 			// Erro ao apagar da table
 			if (del_result == -1 || del_result == 1) {
@@ -145,14 +168,13 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			// Atualizar os stats (tempo e num_ops)
 			gettimeofday(&end_time, NULL);
-			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
-			server_stats.num_ops += 1;
+			update_stats(start_time, end_time);
 
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_SIZE:
 			// Inicializar o start_time para os stats
-        	gettimeofday(&start_time, NULL);
+			gettimeofday(&start_time, NULL);
 
 			// Fazer a operação na tabela
 			int size = table_size(table);
@@ -171,17 +193,18 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			// Atualizar os stats (tempo e num_ops)
 			gettimeofday(&end_time, NULL);
-			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
-			server_stats.num_ops += 1;
+			update_stats(start_time, end_time);
 
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_GETKEYS:
 			// Inicializar o start_time para os stats
-        	gettimeofday(&start_time, NULL);
+			gettimeofday(&start_time, NULL);
 
 			// Fazer a operação na tabela
+			pthread_mutex_lock(&table_lock);
 			char** keys = table_get_keys(table);
+			pthread_mutex_unlock(&table_lock);
 			size_t n_keys = table_size(table);
 
 			// Erro ao buscar os parametros
@@ -199,15 +222,14 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			// Atualizar os stats (tempo e num_ops)
 			gettimeofday(&end_time, NULL);
-			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
-			server_stats.num_ops += 1;
+			update_stats(start_time, end_time);
 
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_GETTABLE:
 			// Inicializar o start_time para os stats
-        	gettimeofday(&start_time, NULL);
-			
+			gettimeofday(&start_time, NULL);
+
 			if (table == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
@@ -216,7 +238,9 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			// Buscar as entries
 			int num_entries = 0;
+			pthread_mutex_lock(&table_lock);
 			struct entry_t** all_entries = get_all_entries(table, &num_entries);
+			pthread_mutex_unlock(&table_lock);
 
 			// Erro ao buscar as entries
 			if (all_entries == NULL) {
@@ -249,18 +273,17 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			// Atualizar os stats (tempo e num_ops)
 			gettimeofday(&end_time, NULL);
-			server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
-			server_stats.num_ops += 1;
-			
+			update_stats(start_time, end_time);
+
 			return 0;
 
-		case MESSAGE_T__OPCODE__OP_STATS: // ATENÇÃO | Como vemos erros no stats?
+		case MESSAGE_T__OPCODE__OP_STATS:  // ATENÇÃO | Como vemos erros no stats?
 			// Atualizar a estrutura MessageT com o resultado
 			msg->opcode = MESSAGE_T__OPCODE__OP_STATS + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_STATS;
 			msg->stats = (StatisticsT*)malloc(sizeof(StatisticsT));
 			statistics_t__init(msg->stats);
-			if(msg->stats == NULL) { //Erro ao alocar memória
+			if (msg->stats == NULL) {	// Erro ao alocar memória
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
 				return -1;
@@ -285,4 +308,11 @@ void update_server_stats_clients(int n, int op) {
 	} else {
 		server_stats.num_clients_connected -= n;
 	}
+}
+
+void update_stats(struct timeval start_time, struct timeval end_time) {
+	pthread_mutex_lock(&stats_lock);
+	server_stats.total_time_microseconds += (end_time.tv_usec - start_time.tv_usec);
+	server_stats.num_ops += 1;
+	pthread_mutex_unlock(&stats_lock);
 }
