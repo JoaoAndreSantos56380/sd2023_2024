@@ -68,8 +68,9 @@ int main(int argc, char const* argv[]) {
 	}
 
 	char option[1024];
+	showMenu();
 	do {
-		showMenu();
+		printf("Option: ");
 		readOption(option, 1024);
 		if (commandIsPut(option)) {
 			executePut(rtable, option);
@@ -163,7 +164,7 @@ void executePut(struct rtable_t* rtable, char* option) {
 			value = strdup(token);
 		}
 	}
-	
+
 	if (key == NULL || value == NULL) {
 		printf("The inserted 'put' command is wrong.\n");
 		printf("Example: put key value\n");
