@@ -103,12 +103,14 @@ table-client: libtable client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o message-private
 	$(CC) $(CFLAGS) $(SRC_DIR)/table_client.c -o $(BIN_DIR)/table-client $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/network_client.o $(OBJ_DIR)/client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
 
 client_run: table-client
-	./$(BIN_DIR)/table-client 127.0.0.1:1337 < teste.txt
-
-cclient_valgrind: table-client
-	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337 < ./teste.txt
+	./$(BIN_DIR)/table-client 127.0.0.1:1337 < teste1.txt
 
 cclient_valgrind2: table-client
+	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337 < ./teste1.txt
+cclient_valgrind1: table-client
+	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337 < ./teste2.txt
+
+cclient_valgrind3: table-client
 	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337
 
 sserver_valgrind: table-server

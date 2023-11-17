@@ -64,6 +64,7 @@ struct data_t* rtable_get(struct rtable_t* rtable, char* key) {
 	struct message_t* response = network_send_receive(rtable, request);
 	free(request);
 	if (response->opcode != (MESSAGE_T__OPCODE__OP_GET + 1)) {
+		message_t__free_unpacked(response, NULL);
 		return NULL;
 	}
 	struct data_t* data = (struct data_t*)malloc(sizeof(struct data_t));
@@ -178,6 +179,7 @@ struct statistics_t *rtable_stats(struct rtable_t* rtable) {
 	stats->num_clients_connected = response->stats->clients;
 	stats->num_ops = response->stats->ops;
 	stats->total_time_microseconds = response->stats->total_time;
+	message_t__free_unpacked(response, NULL);
 
 	return stats;
 }
