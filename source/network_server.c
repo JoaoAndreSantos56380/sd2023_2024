@@ -108,7 +108,10 @@ int network_main_loop(int listening_socket, struct table_t* table) {
 		// Create data
 		int size = sizeof(struct ThreadInfo);
 		struct ThreadInfo* thread_info = (struct ThreadInfo*)malloc(size);
+		thread_info->client_socket = client_socket;
+		thread_info->pthread = thread_id;
 		struct data_t* data = data_create(size, thread_info);
+		free(thread_info);
 		if (data == NULL) {
 			return -1;
 		}
@@ -118,6 +121,7 @@ int network_main_loop(int listening_socket, struct table_t* table) {
 		char key[7 + num_of_chars];
 		sprintf(key, "thread_%d", next_thread_number++);
 		struct entry_t* entry = entry_create(key, data);
+		data_destroy(data);
 		if (entry == NULL) {
 			data_destroy(data);
 			return -1;
