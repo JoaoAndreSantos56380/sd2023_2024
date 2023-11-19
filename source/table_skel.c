@@ -137,6 +137,8 @@ int invoke(MessageT* msg, struct table_t* table) {
 			gettimeofday(&end_time, NULL);
 			update_stats(start_time, end_time);
 
+			free(result_data);
+
 			return 0;
 
 		case MESSAGE_T__OPCODE__OP_DEL:

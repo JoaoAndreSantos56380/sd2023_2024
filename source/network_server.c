@@ -104,6 +104,7 @@ int network_main_loop(int listening_socket, struct table_t* table) {
 			free(thread_args);
 			continue;
 		}
+		pthread_detach(thread_id); // por causa de mem leaks
 
 		// Create data
 		int size = sizeof(struct ThreadInfo);
