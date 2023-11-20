@@ -311,7 +311,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			return 0;
 
-		case MESSAGE_T__OPCODE__OP_STATS:  // ATENÇÃO | Como vemos erros no stats?
+		case MESSAGE_T__OPCODE__OP_STATS:
 			// Atualizar a estrutura MessageT com o resultado
 			msg->opcode = MESSAGE_T__OPCODE__OP_STATS + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_STATS;

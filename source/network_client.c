@@ -75,7 +75,6 @@ MessageT* network_send_receive(struct rtable_t* rtable, MessageT* msg) {
 		return NULL;
 	}
 
-	// Assume write_all is correct
 	if ((nbytes = write_all(sockfd, buffer, value)) != value) {
 		perror("Erro ao enviar dados ao servidor");
 		free(buffer);
@@ -97,7 +96,6 @@ MessageT* network_send_receive(struct rtable_t* rtable, MessageT* msg) {
 
 	buffer = (char*)realloc(buffer, num);
 
-	// Assume read_all is correct
 	nbytes = read_all(sockfd, &buffer, num);
 	if (nbytes != num) {
 		perror("Erro ao receber dados do servidor");

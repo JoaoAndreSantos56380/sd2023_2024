@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
 	/* struct table_t* */ table = table_skel_init(n_lists);
 
-	// Listen to interrupt signal
+	// Listen ao interrupt signal
 	signal(SIGINT, table_server_close);
 
 	int result = network_main_loop(listening_socket, table);
@@ -62,7 +62,7 @@ void initArgsError() {
 }
 
 void table_server_close(int signum /* , int listening_socket, struct table_t* table */) {
-	// Close server
+	// Fechar o server
 	if (network_server_close(listening_socket) != 0) {
 		printf("Error in network_server_close()\n");
 	}

@@ -111,7 +111,6 @@ void showMenu() {
 	printf("gettable\n");
 	printf("stats\n");
 	printf("quit\n");
-	printf("Option: ");
 }
 
 void readOption(char* input, int size) {
