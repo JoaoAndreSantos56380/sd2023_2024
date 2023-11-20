@@ -19,7 +19,7 @@ pthread_mutex_t table_lock;
 pthread_mutex_t stats_lock;
 
 // Stats
-struct statistics_t server_stats;  // ATENÇÃO: Verificar se dá erro, talvez tenhamos de inicializar no init do table_skel
+struct statistics_t server_stats;
 
 struct table_t* table_skel_init(int n_lists) {
 	// Inicializar a tabela com n_lists
@@ -79,6 +79,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (msg->entry == NULL || msg->entry->key == NULL || msg->entry->value.data == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 			// Fazer a operação na tabela
@@ -91,6 +95,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (result == -1) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -113,6 +121,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (msg->key == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -124,6 +136,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (result_data == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -161,6 +177,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (del_result == -1 || del_result == 1) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -185,6 +205,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (size == -1) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -213,6 +237,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (keys == NULL || n_keys == -1) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -248,6 +276,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (all_entries == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
