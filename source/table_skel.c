@@ -14,6 +14,7 @@
 #include "table.h"
 #include "table_skel-private.h"
 #include "table_skel.h"
+#include "client_stub-private.h"
 
 pthread_mutex_t table_lock;
 pthread_mutex_t stats_lock;
@@ -100,6 +101,24 @@ int invoke(MessageT* msg, struct table_t* table) {
 				gettimeofday(&end_time, NULL);
 				update_stats(start_time, end_time);
 				return -1;
+			} else {
+				// Send request down the chain
+				struct entry_t* entry = entry_create(strdup(msg->entry->key), data_dup(data));
+				if (next_server != NULL) {
+					int put_result = -1;
+					int retries = 0;
+					int max_retries = 10;
+					while (put_result == -1 && retries < max_retries) {
+						put_result = rtable_put(next_server, entry);
+						if (put_result == -1) {
+							printf("Error processing remote put request! Retrying %d/%d...\n", ++retries, max_retries);
+						} else {
+							printf("Remote PUT successful!\n");
+						}
+					}
+				} else {
+					printf("Put request not forwarded because this is the tail.\n");
+				}
 			}
 
 			// Atualizar a estrutura MessageT com o resultado
@@ -182,6 +201,23 @@ int invoke(MessageT* msg, struct table_t* table) {
 				gettimeofday(&end_time, NULL);
 				update_stats(start_time, end_time);
 				return -1;
+			} else {
+				// Send request down the chain
+				if (next_server != NULL) {
+					int del_result = -1;
+					int retries = 0;
+					int max_retries = 10;
+					while (del_result == -1 && retries < max_retries) {
+						del_result = rtable_del(next_server, msg->key);
+						if (del_result == -1) {
+							printf("Error processing remote del request! Retrying %d/%d...\n", ++retries, max_retries);
+						} else {
+							printf("Remote del successful!\n");
+						}
+					}
+				} else {
+					printf("Del request not forwarded because this is the tail.\n");
+				}
 			}
 
 			// Atualizar a estrutura MessageT com o resultado

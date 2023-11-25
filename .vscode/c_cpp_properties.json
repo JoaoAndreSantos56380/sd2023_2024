@@ -4,6 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${default}",
+                "${workspaceFolder}/include",
+                "/usr/include/zookeeper",
                 "${workspaceFolder}/include"
             ],
             "defines": [],

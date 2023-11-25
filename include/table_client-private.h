@@ -5,6 +5,8 @@
 #ifndef _TABLE_CLIENT_PRIVATE_
 #define _TABLE_CLIENT_PRIVATE_
 
+#include "client_zookeeper-private.h"
+
 /*
  * Função que imprime mensagens de erro quando os argumentos passados
  * ao programa são os errados.
@@ -18,63 +20,63 @@ void initArgsError();
 void showMenu();
 
 /*
- * Função que lê o input do utilizador e remove as new lines (\n) 
+ * Função que lê o input do utilizador e remove as new lines (\n)
  * para o input ser mais tratado mais fácilmente pelo programa.
  */
 void readOption(char* input, int size);
 
 /*
  * Função que verifica se a opção passada é do tipo "put".
- * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
+ * Devolve 0 se a opção for desse tipo, caso contrário retorna um
  * valor diferente de 0.
  */
 int commandIsPut(char* option);
 
 /*
  * Função que verifica se a opção passada é do tipo "get".
- * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
+ * Devolve 0 se a opção for desse tipo, caso contrário retorna um
  * valor diferente de 0.
  */
 int commandIsGet(char* option);
 
 /*
  * Função que verifica se a opção passada é do tipo "del".
- * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
+ * Devolve 0 se a opção for desse tipo, caso contrário retorna um
  * valor diferente de 0.
  */
 int commandIsDel(char* option);
 
 /*
  * Função que verifica se a opção passada é do tipo "size".
- * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
+ * Devolve 0 se a opção for desse tipo, caso contrário retorna um
  * valor diferente de 0.
  */
 int commandIsSize(char* option);
 
 /*
  * Função que verifica se a opção passada é do tipo "stats".
- * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
+ * Devolve 0 se a opção for desse tipo, caso contrário retorna um
  * valor diferente de 0.
  */
 int commandIsStats(char* option);
 
 /*
  * Função que verifica se a opção passada é do tipo "quit".
- * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
+ * Devolve 0 se a opção for desse tipo, caso contrário retorna um
  * valor diferente de 0.
  */
 int commandIsQuit(char* option);
 
 /*
  * Função que verifica se a opção passada é do tipo "gettable".
- * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
+ * Devolve 0 se a opção for desse tipo, caso contrário retorna um
  * valor diferente de 0.
  */
 int commandIsGetTable(char* option);
 
 /*
  * Função que verifica se a opção passada é do tipo "getkeys".
- * Devolve 0 se a opção for desse tipo, caso contrário retorna um 
+ * Devolve 0 se a opção for desse tipo, caso contrário retorna um
  * valor diferente de 0.
  */
 int commandIsGetKeys(char* option);
@@ -122,5 +124,7 @@ void executeGetKeys(struct rtable_t* rtable);
  * - nº total de cliente atualmente ligados ao servidor.
  */
 void executeStats(struct rtable_t* rtable);
+
+void select_head_and_tail_servers(zoo_string* children_list, char* root_path, zhandle_t* zh);
 
 #endif

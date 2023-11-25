@@ -1,0 +1,13 @@
+este ano:
+	servidor:
+		procurar server seguinte
+		depois de uma operacao propagar pela cadeia
+		fazer watch para ver se algum vai abaixo para refazer a cadeia
+	cliente:
+		procurar cabeca e cauda
+		ligarme a cabeca e a cauda
+		ler da cauda e escrever na cabeca
+		fazer watch para ver alteracoes de ligacoes
+
+diferente do ano passao:
+	quando ligo um novo server tenho que passar uma copia da tabela
