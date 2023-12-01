@@ -20,4 +20,5 @@ void initArgsError();
  */
 void table_server_close(int signum /* , int listening_socket, struct table_t* table */);
 void select_next_server(zoo_string* children_list, char* root_path, zhandle_t* zh);
+void select_prev_server(zoo_string* children_list, char* root_path, zhandle_t* zh);
 #endif

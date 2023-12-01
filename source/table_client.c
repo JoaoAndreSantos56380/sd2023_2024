@@ -119,8 +119,8 @@ int main(int argc, char const* argv[]) {
 }
 
 void initArgsError() {
-	printf("Usage: ./table-client <server>:<port>\n");
-	printf("Example: ./table-client 127.0.0.1:12345\n");
+	printf("Usage: ./table-client <server>:<port>[From ZooKeeper!]\n");
+	printf("Example: ./table-client 127.0.0.1:2181\n");
 }
 
 void showMenu() {
