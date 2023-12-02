@@ -9,12 +9,15 @@
 #include <arpa/inet.h>
 
 #include "client_stub-private.h"
+#include "bubble_sort-private.h"
 #include "client_stub.h"
 #include "data.h"
 #include "entry.h"
 #include "sdmessage.pb-c.h"
 #include "table_client-private.h"
+#include "client_zookeeper-private.h"
 #include "stats.h"
+#include <zookeeper.h>
 
 #define PUT "put"
 #define GET "get"
@@ -25,7 +28,18 @@
 #define GETTABLE "gettable"
 #define STATS "stats"
 
+zhandle_t* zh;
+struct rtable_t* head = NULL;
+struct rtable_t* tail = NULL;
+
 int main(int argc, char const* argv[]) {
+	// Ignore SIGPIPE signal so server doesn't crash if socket closes unexpectedly
+	struct sigaction new_actn;
+	new_actn.sa_handler = SIG_IGN;
+	sigemptyset(&new_actn.sa_mask);
+	new_actn.sa_flags = 0;
+	sigaction(SIGPIPE, &new_actn, NULL);
+
 	if (argc < 2) {
 		initArgsError();
 		return -1;
@@ -60,38 +74,46 @@ int main(int argc, char const* argv[]) {
         return -1;
     }
 
-	struct rtable_t* rtable = rtable_connect(args);
-	free(args);
-	if (rtable == NULL) {
-		perror("could not connect client\n");
-		return -1;
+	// Connect to ZooKeeper
+	char* root_path = "/chain";
+	zh = zk_connect(args, root_path);
+	if (zh == NULL) {
+		fprintf(stderr, "Error connecting to ZooKeeper!\n");
+		exit(EXIT_FAILURE);
 	}
 
-	char option[1024];
-	showMenu();
-	do {
-		printf("Option: ");
-		readOption(option, 1024);
-		if (commandIsPut(option)) {
-			executePut(rtable, option);
-		} else if (commandIsGetKeys(option)) {
-			executeGetKeys(rtable);
-		} else if (commandIsGetTable(option)) {
-			executeGetTable(rtable);
-		} else if (commandIsGet(option)) {
-			executeGet(rtable, option);
-		} else if (commandIsDel(option)) {
-			executeDel(rtable, option);
-		} else if (commandIsSize(option)) {
-			executeSize(rtable);
-		} else if(commandIsStats(option)) {
-			executeStats(rtable);
-		} else if (!commandIsQuit(option)) {
-			printf("Please input a valid command.\n");
-		}
+	 // Get children list
+	 struct watcher_ctx watcher_ctx;
+	 watcher_ctx.callback = select_head_and_tail_servers;
+	 zk_get_children(zh, &watcher_ctx);
+
+	 char option[1024];
+	 showMenu();
+	 do {
+		 printf("Option: ");
+		 readOption(option, 1024);
+		 if (commandIsPut(option)) {
+			 executePut(head, option);
+		 } else if (commandIsGetKeys(option)) {
+			 executeGetKeys(tail);
+		 } else if (commandIsGetTable(option)) {
+			 executeGetTable(tail);
+		 } else if (commandIsGet(option)) {
+			 executeGet(tail, option);
+		 } else if (commandIsDel(option)) {
+			 executeDel(head, option);
+		 } else if (commandIsSize(option)) {
+			 executeSize(tail);
+		 } else if (commandIsStats(option)) {
+			 executeStats(tail);
+		 } else if (!commandIsQuit(option)) {
+			 printf("Please input a valid command.\n");
+		 }
 
 	} while (strncmp(option, QUIT, strlen(QUIT)) != 0);
-	rtable_disconnect(rtable);
+	zk_disconnect(zh);
+	rtable_disconnect(head);
+	rtable_disconnect(tail);
 	printf("Client exiting. Bye.\n");
 	return 0;
 }
@@ -111,7 +133,6 @@ void showMenu() {
 	printf("gettable\n");
 	printf("stats\n");
 	printf("quit\n");
-	printf("Option: ");
 }
 
 void readOption(char* input, int size) {
@@ -302,4 +323,59 @@ void executeStats(struct rtable_t* rtable) {
 	printf("Total time of all the operations: %ld\n", stats->total_time_microseconds);
 	printf("Number of clients connected: %d\n", stats->num_clients_connected);
 	free(stats);
+}
+
+// Process children list
+void select_head_and_tail_servers(zoo_string* children_list, char* root_path, zhandle_t* zh) {
+	printf("Callback function was called on the client!\n");
+	printf("antes de ordenar\n");
+	for (int i = 0; i < children_list->count; i++) {
+		printf("%s\n", children_list->data[i]);
+	}
+	bubble_sort(children_list->data, children_list->count);
+	printf("depois de ordenar\n");
+	for (int i = 0; i < children_list->count; i++) {
+		printf("%s\n", children_list->data[i]);
+	}
+	if (children_list->count > 0) {
+		// Get next node's IP and port
+		int watch = 0;
+		int node_metadata_length = ZDATALEN;
+		char* node_metadata = malloc(node_metadata_length * sizeof(char));
+		struct Stat* stat = NULL;
+		char node_path[120] = "";
+		strcat(node_path, root_path);
+		strcat(node_path, "/");
+		strcat(node_path, children_list->data[0]);
+		if (zoo_get(zh, node_path, watch, node_metadata, &node_metadata_length, stat) != ZOK) {
+			fprintf(stderr, "Error getting new node's metadata at %s!\n", root_path);
+		}
+
+		// If there's already a connection to head
+		if (head != NULL) {
+			// Disconnect from head
+			rtable_disconnect(head);
+		}
+
+		printf("Connected to head %s\n", node_metadata);
+		head = rtable_connect(node_metadata);
+
+		node_path[0] = '\0';
+		strcat(node_path, root_path);
+		strcat(node_path, "/");
+		strcat(node_path, children_list->data[children_list->count - 1]);
+		if (zoo_get(zh, node_path, watch, node_metadata, &node_metadata_length, stat) != ZOK) {
+			fprintf(stderr, "Error getting new node's metadata at %s!\n", root_path);
+		}
+
+		// If there's already a connection to tail
+		if (tail != NULL) {
+			// Disconnect from tail
+			rtable_disconnect(tail);
+		}
+
+		printf("Connected to tail %s\n", node_metadata);
+		tail = rtable_connect(node_metadata);
+		free(node_metadata);
+	}
 }

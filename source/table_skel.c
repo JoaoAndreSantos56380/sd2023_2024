@@ -14,12 +14,13 @@
 #include "table.h"
 #include "table_skel-private.h"
 #include "table_skel.h"
+#include "client_stub-private.h"
 
 pthread_mutex_t table_lock;
 pthread_mutex_t stats_lock;
 
 // Stats
-struct statistics_t server_stats;  // ATENÇÃO: Verificar se dá erro, talvez tenhamos de inicializar no init do table_skel
+struct statistics_t server_stats;
 
 struct table_t* table_skel_init(int n_lists) {
 	// Inicializar a tabela com n_lists
@@ -79,6 +80,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (msg->entry == NULL || msg->entry->key == NULL || msg->entry->value.data == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 			// Fazer a operação na tabela
@@ -91,7 +96,29 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (result == -1) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
+			} else {
+				// Send request down the chain
+				struct entry_t* entry = entry_create(strdup(msg->entry->key), data_dup(data));
+				if (next_server != NULL) {
+					int put_result = -1;
+					int retries = 0;
+					int max_retries = 10;
+					while (put_result == -1 && retries < max_retries) {
+						put_result = rtable_put(next_server, entry);
+						if (put_result == -1) {
+							printf("Error processing remote put request! Retrying %d/%d...\n", ++retries, max_retries);
+						} else {
+							printf("Remote PUT successful!\n");
+						}
+					}
+				} else {
+					printf("Put request not forwarded because this is the tail.\n");
+				}
 			}
 
 			// Atualizar a estrutura MessageT com o resultado
@@ -113,6 +140,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (msg->key == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -124,6 +155,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (result_data == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -161,7 +196,28 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (del_result == -1 || del_result == 1) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
+			} else {
+				// Send request down the chain
+				if (next_server != NULL) {
+					int del_result = -1;
+					int retries = 0;
+					int max_retries = 10;
+					while (del_result == -1 && retries < max_retries) {
+						del_result = rtable_del(next_server, msg->key);
+						if (del_result == -1) {
+							printf("Error processing remote del request! Retrying %d/%d...\n", ++retries, max_retries);
+						} else {
+							printf("Remote del successful!\n");
+						}
+					}
+				} else {
+					printf("Del request not forwarded because this is the tail.\n");
+				}
 			}
 
 			// Atualizar a estrutura MessageT com o resultado
@@ -185,6 +241,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (size == -1) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -213,6 +273,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (keys == NULL || n_keys == -1) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -248,6 +312,10 @@ int invoke(MessageT* msg, struct table_t* table) {
 			if (all_entries == NULL) {
 				msg->opcode = MESSAGE_T__OPCODE__OP_ERROR;
 				msg->c_type = MESSAGE_T__C_TYPE__CT_NONE;
+
+				// Atualizar os stats (tempo e num_ops)
+				gettimeofday(&end_time, NULL);
+				update_stats(start_time, end_time);
 				return -1;
 			}
 
@@ -279,7 +347,7 @@ int invoke(MessageT* msg, struct table_t* table) {
 
 			return 0;
 
-		case MESSAGE_T__OPCODE__OP_STATS:  // ATENÇÃO | Como vemos erros no stats?
+		case MESSAGE_T__OPCODE__OP_STATS:
 			// Atualizar a estrutura MessageT com o resultado
 			msg->opcode = MESSAGE_T__OPCODE__OP_STATS + 1;
 			msg->c_type = MESSAGE_T__C_TYPE__CT_STATS;

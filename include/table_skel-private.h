@@ -5,6 +5,8 @@
 #ifndef _TABLE_SKEL_PRIVATE_H
 #define _TABLE_SKEL_PRIVATE_H
 
+extern struct rtable_t* next_server;
+
 /*
  * Função a ser chamada pelo network_server, para atualizar
  * o número de clientes atualmente atualizados pelo servidor.

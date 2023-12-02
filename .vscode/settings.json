@@ -13,7 +13,9 @@
 		"client_stub-private.h": "c",
 		"network_server.h": "c",
 		"table_skel-private.h": "c",
-		"network_server-private.h": "c"
+		"network_server-private.h": "c",
+		"table_server-private.h": "c",
+		"client_zookeeper-private.h": "c"
 	},
 	"C_Cpp.dimInactiveRegions": false,
 }

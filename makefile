@@ -6,6 +6,7 @@
 # Diretório de objetos
 OBJ_DIR = object
 INC_DIR = include
+LIBINCLUDEDIR = /usr/include/zookeeper
 LIB_DIR = lib
 BIN_DIR = binary
 SRC_DIR = source
@@ -72,6 +73,9 @@ $(OBJ_DIR)/sdmessage.pb-c.o:
 	mv sdmessage.pb-c.h include
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/sdmessage.pb-c.c -o $(OBJ_DIR)/sdmessage.pb-c.o
 
+client_zookeeper.o:
+	$(CC) $(FLAGS) -c $(SRC_DIR)/client_zookeeper.c -o $(OBJ_DIR)/client_zookeeper.o -I $(INC_DIR) -I $(LIBINCLUDEDIR)
+
 client_stub.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/client_stub.c -o $(OBJ_DIR)/client_stub.o
 
@@ -90,17 +94,16 @@ table_client.o:
 table_skel.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/table_skel.c -o $(OBJ_DIR)/table_skel.o
 
-table-server: libtable $(OBJ_DIR)/sdmessage.pb-c.o network_server.o table_skel.o message-private.o
-	$(CC) $(CFLAGS) $(SRC_DIR)/table_server.c -o $(BIN_DIR)/table-server $(OBJ_DIR)/network_server.o $(OBJ_DIR)/table_skel.o $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c -lpthread -lm
-
+table-server: libtable $(OBJ_DIR)/sdmessage.pb-c.o network_client.o network_server.o table_skel.o message-private.o client_zookeeper.o client_stub.o sort.o
+	$(CC) $(CFLAGS) $(SRC_DIR)/zookeeper.c $(SRC_DIR)/table_server.c -o $(BIN_DIR)/table-server $(OBJ_DIR)/network_client.o $(OBJ_DIR)/network_server.o $(OBJ_DIR)/table_skel.o $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/sdmessage.pb-c.o $(OBJ_DIR)/client_zookeeper.o $(OBJ_DIR)/client_stub.o $(OBJ_DIR)/bubble_sort.o -I$(LIBINCLUDEDIR) -I/usr/include/ -L/usr/include -lprotobuf-c -lpthread -lm -lzookeeper_mt
 server_run: table-server
 	./$(BIN_DIR)/table-server 1337 4
 
 libtable: data.o entry.o list.o table.o
 	ar -rcs $(LIB_DIR)/libtable.a $(OBJ_DIR)/data.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/list.o $(OBJ_DIR)/table.o
 
-table-client: libtable client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o message-private.o network_client.o
-	$(CC) $(CFLAGS) $(SRC_DIR)/table_client.c -o $(BIN_DIR)/table-client $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/network_client.o $(OBJ_DIR)/client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o -I/usr/include/ -L/usr/include -lprotobuf-c
+table-client: libtable client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o message-private.o network_client.o client_zookeeper.o sort.o
+	$(CC) $(CFLAGS) $(SRC_DIR)/table_client.c -o $(BIN_DIR)/table-client $(LIB_DIR)/libtable.a $(OBJ_DIR)/message-private.o $(OBJ_DIR)/network_client.o $(OBJ_DIR)/client_zookeeper.o $(OBJ_DIR)/client_stub.o $(OBJ_DIR)/bubble_sort.o $(OBJ_DIR)/sdmessage.pb-c.o -I$(LIBINCLUDEDIR) -I/usr/include/ -L/usr/include -lprotobuf-c -lzookeeper_mt
 
 client_run: table-client
 	./$(BIN_DIR)/table-client 127.0.0.1:1337 < teste1.txt
@@ -124,3 +127,6 @@ list.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/list.c -o $(OBJ_DIR)/list.o
 table.o:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/table.c -o $(OBJ_DIR)/table.o
+
+sort.o:
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/bubble_sort.c -o $(OBJ_DIR)/bubble_sort.o -I $(INC_DIR) -I$(LIBINCLUDEDIR) -lzookeeper_mt
