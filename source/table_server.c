@@ -211,7 +211,7 @@ void select_prev_server(zoo_string* children_list, char* root_path, zhandle_t* z
 			char node_path[120] = "";
 			strcat(node_path, root_path);
 			strcat(node_path, "/");
-			strcat(node_path, children_list->data[i - 1]);
+			strcat(node_path, children_list->data[i]);
 			if (zoo_get(zh, node_path, watch, node_metadata, &node_metadata_length, stat) != ZOK) {
 				fprintf(stderr, "Error getting head's metadata at %s!\n", root_path);
 			} else {
