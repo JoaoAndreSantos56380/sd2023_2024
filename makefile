@@ -99,6 +99,10 @@ table-server: libtable $(OBJ_DIR)/sdmessage.pb-c.o network_client.o network_serv
 server_run: table-server
 	./$(BIN_DIR)/table-server 1337 4
 
+
+zks_server_run: table-server
+	./$(BIN_DIR)/table-server 1337 4 127.0.0.1:2181
+
 libtable: data.o entry.o list.o table.o
 	ar -rcs $(LIB_DIR)/libtable.a $(OBJ_DIR)/data.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/list.o $(OBJ_DIR)/table.o
 
@@ -107,6 +111,10 @@ table-client: libtable client_stub.o $(OBJ_DIR)/sdmessage.pb-c.o message-private
 
 client_run: table-client
 	./$(BIN_DIR)/table-client 127.0.0.1:1337 < teste1.txt
+
+
+zkc_client_run: table-client
+	./$(BIN_DIR)/table-client 127.0.0.1:2181
 
 cclient_valgrind2: table-client
 	valgrind --leak-check=full --track-origins=yes $(BIN_DIR)/table-client 127.0.0.1:1337 < ./teste1.txt
