@@ -103,6 +103,12 @@ server_run: table-server
 zks_server_run: table-server
 	./$(BIN_DIR)/table-server 1337 4 127.0.0.1:2181
 
+zks_server_run2: table-server
+	./$(BIN_DIR)/table-server 1338 4 127.0.0.1:2181
+
+zks_server_run3: table-server
+	./$(BIN_DIR)/table-server 1339 4 127.0.0.1:2181
+
 libtable: data.o entry.o list.o table.o
 	ar -rcs $(LIB_DIR)/libtable.a $(OBJ_DIR)/data.o $(OBJ_DIR)/entry.o $(OBJ_DIR)/list.o $(OBJ_DIR)/table.o
 
