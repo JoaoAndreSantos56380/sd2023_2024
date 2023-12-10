@@ -30,6 +30,8 @@ void zk_child_watcher(zhandle_t* zh, int type, int state, const char* zpath, voi
 
 void get_ip_address(char* ip_address);
 
+int get_local_ip(char* ip_str, size_t buflen);
+
 void zk_disconnect(zhandle_t* zh);
 
 #endif

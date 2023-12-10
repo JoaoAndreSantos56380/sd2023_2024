@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
     int zk_port;
     if (sscanf(zk_port_str, "%d", &zk_port) != 1) {
         printf("Invalid port: %s\n", zk_port_str);
-		initArgsError();
+        initArgsError();
         return -1;
     }
 

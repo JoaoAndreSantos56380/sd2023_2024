@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <ifaddrs.h>
+#include <sys/types.h>
 
 #include "client_zookeeper-private.h"
 
@@ -45,8 +46,12 @@ void zk_register_server(zhandle_t* zh, const char* server_port) {
 	strcat(node_path, "/node");
 	char server_address_port[120];
 	char server_address[100];
-	get_ip_address(server_address);
+	printf("Server address: %s\n", server_address);
+	//get_ip_address(server_address);
+	get_local_ip(server_address, INET_ADDRSTRLEN);
+	printf("Server address: %s\n", server_address);
 	sprintf(server_address_port, "%s:%s", server_address, server_port);
+	printf("server_address:port: %s\n", server_address_port);
 	char* node_metadata = server_address_port;
 	int node_metadata_length = strlen(node_metadata) + 1;
 	int create_result = zoo_create(zh, node_path, node_metadata, node_metadata_length, &ZOO_OPEN_ACL_UNSAFE, ZOO_EPHEMERAL | ZOO_SEQUENCE, zk_node_id, ZDATALEN);
@@ -123,6 +128,38 @@ void get_ip_address(char* ip_address) {
 	close(fd);
 	/*Extract IP Address*/
 	strcpy(ip_address, inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr));
+}
+
+int get_local_ip(char* ip_str, size_t buflen) {
+	struct ifaddrs *ifaddr, *ifa;
+	int family;
+	int found = 0;
+
+	if (getifaddrs(&ifaddr) == -1) {
+		perror("getifaddrs");
+		return -1;
+	}
+
+	for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+		if (ifa->ifa_addr == NULL)
+			continue;
+
+		family = ifa->ifa_addr->sa_family;
+
+		if (family == AF_INET) {  // Check for IPv4 addresses only
+			void* addr = &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
+			inet_ntop(family, addr, ip_str, buflen);
+
+			if (strcmp(ip_str, "127.0.0.1") != 0) {  // Exclude loopback address
+				found = 1;
+				break;
+			}
+		}
+	}
+
+	freeifaddrs(ifaddr);
+
+	return found ? 0 : -1;
 }
 
 void zk_disconnect(zhandle_t* zh) {

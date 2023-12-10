@@ -49,19 +49,19 @@ table-client: $(LIB_DIR)/libtable.a $(OBJ_DIR)/client_stub.o $(OBJ_DIR)/sdmessag
 	$(CC) $(CFLAGS) $(SRC_DIR)/table_client.c -o $(BIN_DIR)/$@ $^ $(LDFLAGS)
 
 zks_server_run: table-server
-	./$(BIN_DIR)/table-server 1337 4 172.17.254.246:2181
+	./$(BIN_DIR)/table-server 1337 4 127.0.0.1:2181
 
 zks_server_run2: table-server
-	./$(BIN_DIR)/table-server 1338 4 172.17.254.246:2181
+	./$(BIN_DIR)/table-server 1338 4 127.0.0.1:2181
 
 zks_server_run3: table-server
-	./$(BIN_DIR)/table-server 1339 4 172.17.254.246:2181
+	./$(BIN_DIR)/table-server 1339 4 127.0.0.1:2181
 
-zks_server_run3: table-server
-	./$(BIN_DIR)/table-server 1340 4 172.17.254.246:2181
+zks_server_run4: table-server
+	./$(BIN_DIR)/table-server 1340 4 127.0.0.1:2181
 
 zkc_client_run: table-client
-	./$(BIN_DIR)/table-client 172.17.254.246:2181
+	./$(BIN_DIR)/table-client 127.0.0.1:2181
 
 run:
 	$(addprefix $(BIN_DIR)/,$(EXECS))
