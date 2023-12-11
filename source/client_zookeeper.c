@@ -46,10 +46,7 @@ void zk_register_server(zhandle_t* zh, const char* server_port) {
 	strcat(node_path, "/node");
 	char server_address_port[120];
 	char server_address[100];
-	printf("Server address: %s\n", server_address);
-	//get_ip_address(server_address);
 	get_local_ip(server_address, INET_ADDRSTRLEN);
-	printf("Server address: %s\n", server_address);
 	sprintf(server_address_port, "%s:%s", server_address, server_port);
 	printf("server_address:port: %s\n", server_address_port);
 	char* node_metadata = server_address_port;
@@ -60,21 +57,8 @@ void zk_register_server(zhandle_t* zh, const char* server_port) {
 		fprintf(stderr, "Error: %d!\n", create_result);
 		exit(EXIT_FAILURE);
 	}
-	// zk_node_id => /chain/node0000005
-	// zk_node_id => 0000005
-	printf("Antes : %s\n", zk_node_id);
 	strncpy(zk_node_id, zk_node_id + 7, strlen(zk_node_id + 7) + 1);
-	printf("Depois: %s\n", zk_node_id);
 	printf("Ephemeral Sequencial ZNode created! ZNode path: %s\n", zk_node_id);
-}
-
-void zk_print_nodes(zoo_string* children_list) {
-	// Print nodes
-	fprintf(stderr, "\n=== znode listing === [ %s ]", root_path);
-	for (int i = 0; i < children_list->count; i++) {
-		fprintf(stderr, "\n(%d): %s", i + 1, children_list->data[i]);
-	}
-	fprintf(stderr, "\n=== done ===\n");
 }
 
 void zk_get_children(zhandle_t* zh, void* watcher_ctx) {
@@ -99,35 +83,12 @@ void zk_child_watcher(zhandle_t* zh, int type, int state, const char* zpath, voi
 			fprintf(stderr, "Error setting watch at %s!\n", root_path);
 		}
 
-		// Print children list
-		zk_print_nodes(children_list);
-
 		// Call callback function
 		((struct watcher_ctx*)watcher_ctx)->callback(children_list, root_path, zh /* children_list, root_path */);
 
 		// Free children list
 		free(children_list);
 	}
-}
-
-void get_ip_address(char* ip_address) {
-	int fd;
-	struct ifreq ifr;
-	/*AF_INET - to define network interface IPv4*/
-	/*Creating soket for it.*/
-	fd = socket(AF_INET, SOCK_STREAM, 0);
-	/*AF_INET - to define IPv4 Address type.*/
-	ifr.ifr_addr.sa_family = AF_INET;
-	/*eth0 - define the ifr_name - port name
-	where network attached.*/
-	memcpy(ifr.ifr_name, "eth0", IFNAMSIZ - 1);
-	/*Accessing network interface information by
-	passing address using ioctl.*/
-	ioctl(fd, SIOCGIFADDR, &ifr);
-	/*closing fd*/
-	close(fd);
-	/*Extract IP Address*/
-	strcpy(ip_address, inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr));
 }
 
 int get_local_ip(char* ip_str, size_t buflen) {

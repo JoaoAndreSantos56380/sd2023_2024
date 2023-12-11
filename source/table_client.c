@@ -327,16 +327,7 @@ void executeStats(struct rtable_t* rtable) {
 
 // Process children list
 void select_head_and_tail_servers(zoo_string* children_list, char* root_path, zhandle_t* zh) {
-	printf("Callback function was called on the client!\n");
-	printf("antes de ordenar\n");
-	for (int i = 0; i < children_list->count; i++) {
-		printf("%s\n", children_list->data[i]);
-	}
 	bubble_sort(children_list->data, children_list->count);
-	printf("depois de ordenar\n");
-	for (int i = 0; i < children_list->count; i++) {
-		printf("%s\n", children_list->data[i]);
-	}
 	if (children_list->count > 0) {
 		// Get next node's IP and port
 		int watch = 0;

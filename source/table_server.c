@@ -131,17 +131,7 @@ void table_server_close(int signum /* , int listening_socket, struct table_t* ta
 }
 
 void select_next_server(zoo_string* children_list, char* root_path, zhandle_t* zh) {
-	// Process children list
-	/* printf("Callback function was called on the server!\n");
-	printf("antes de ordenar\n");
-	for (int i = 0; i < children_list->count; i++) {
-		printf("%s\n", children_list->data[i]);
-	} */
 	bubble_sort(children_list->data, children_list->count);
-	/* printf("depois de ordenar\n");
-	for (int i = 0; i < children_list->count; i++) {
-		printf("%s\n", children_list->data[i]);
-	} */
 	int i;
 	for (i = 0; i < children_list->count; i++) {
 		if (i == 0 && strcmp(children_list->data[i], zk_node_id) == 0) {
@@ -197,25 +187,11 @@ void select_next_server(zoo_string* children_list, char* root_path, zhandle_t* z
 
 
 void select_prev_server(zoo_string* children_list, char* root_path, zhandle_t* zh) {
-	//printf("Callback select_prev_server function was called on the server!\n");
-	//printf("children_count: %d\n", children_list->count);
-	//printf("zk_node_id: %s\n", zk_node_id);
 	struct rtable_t* head_table = NULL;
-	// Order the list
-	/* printf("antes de ordenar\n");
-	for (int i = 0; i < children_list->count; i++) {
-		printf("%s\n", children_list->data[i]);
-	} */
 	bubble_sort(children_list->data, children_list->count);
-	/* printf("depois de ordenar\n");
-	for (int i = 0; i < children_list->count; i++) {
-		printf("%s\n", children_list->data[i]);
-	} */
 	// Process children list (assumes it's sorted in ascending order)
-	//for (int i = 0; i < children_list->count; i++) {
 	for (int i = children_list->count - 1; i >= 0; i--) {
 		// Find our own position in the list
-		//printf("children_list->data[i]: %s\n", children_list->data[i]);
 		if (i == 0 && strcmp(children_list->data[i], zk_node_id) == 0) {
 			int watch = 0;
 			int node_metadata_length = ZDATALEN;
@@ -225,7 +201,6 @@ void select_prev_server(zoo_string* children_list, char* root_path, zhandle_t* z
 			strcat(node_path, root_path);
 			strcat(node_path, "/");
 			strcat(node_path, children_list->data[i]);
-			//printf("node_path: %s\n", node_path);
 			if (zoo_get(zh, node_path, watch, node_metadata, &node_metadata_length, stat) != ZOK) {
 				fprintf(stderr, "Error getting head's metadata at %s!\n", root_path);
 			} else {
@@ -250,12 +225,10 @@ void select_prev_server(zoo_string* children_list, char* root_path, zhandle_t* z
 			strcat(node_path, root_path);
 			strcat(node_path, "/");
 			strcat(node_path, children_list->data[i]);
-			//printf("node_path: %s\n", node_path);
 			if (zoo_get(zh, node_path, watch, node_metadata, &node_metadata_length, stat) != ZOK) {
 				fprintf(stderr, "Error getting predecessor's metadata at %s!\n", root_path);
 			} else {
-				// Connect to the predecessor server~
-				//printf("node_metadata: %s\n", node_metadata);
+				// Connect to the predecessor server
 				struct rtable_t* prev_server = rtable_connect(node_metadata);
 				if (prev_server == NULL) {
 					fprintf(stderr, "Error connecting to the predecessor server %s:%d!\n", prev_server->server_address, prev_server->server_port);
@@ -266,19 +239,7 @@ void select_prev_server(zoo_string* children_list, char* root_path, zhandle_t* z
 					if (prev_table_entries != NULL){
 						while(prev_table_entries[i] != NULL) {
 							struct entry_t* temp_prev_entry = prev_table_entries[i];
-							//head table a null. resolver
-							/* if(head_table == NULL){
-								head_table = rtable_connect(node_metadata);
-								if (head_table == NULL) {
-									fprintf(stderr, "Error connecting to the head server %s:%d!\n", head_table->server_address, head_table->server_port);
-								}
-							} */
-							//int result = rtable_put(head_table, temp_prev_entry);
-							int result = table_put(table, temp_prev_entry->key, temp_prev_entry->value);//rtable_put(table, temp_prev_entry);
-							//printf("head_address: %s\n", head_table->server_address);
-							//printf("head_port: %d\n", head_table->server_port);
-							/* printf("my_address: %s\n", table->server_address);
-							printf("my_port: %d\n", table->server_port); */
+							int result = table_put(table, temp_prev_entry->key, temp_prev_entry->value);
 							if(result == -1) {
 								// O que fazer em caso de erro?
 								perror("Error putting entries from the predecessor node into the local table.\n");
@@ -299,10 +260,6 @@ void select_prev_server(zoo_string* children_list, char* root_path, zhandle_t* z
 			}
 			free(node_metadata);
 			break;
-		} /* else {
-			printf("I'm the head, no predecessor!\n");
-			break;
-		} */
+		}
 	}
-	//printf("I'm the head, no predecessor!\n");
 }

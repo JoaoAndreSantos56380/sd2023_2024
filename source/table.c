@@ -200,19 +200,12 @@ char** table_get_keys(struct table_t* table) {
 			int listIndex = 0;
 			char* key = listKeys[listIndex];
 			while (key != NULL) {
-				// char* key_copy = (char*)malloc(strlen(key) + 1);
-				// strcpy(key_copy, key);
-				// char* key_copy_dup = strdup(key_copy);
-				// keys[keyIndex++] = key_copy_dup;
 				int length = strlen(key);
 				keys[keyIndex] = (char*)malloc(length + 1);
 				strcpy(keys[keyIndex], key);
 				keys[keyIndex][length] = '\0';
 				keyIndex++;
-				// printf("key[%d]:%s\n", keyIndex, keys[keyIndex]);
 				key = listKeys[++listIndex];
-				// free(key_copy);
-				// free(key_copy_dup);
 			}
 		}
 		list_free_keys(listKeys);

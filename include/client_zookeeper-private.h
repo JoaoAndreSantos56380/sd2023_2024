@@ -22,13 +22,9 @@ void zk_create_root_node_if_doesnt_exist(zhandle_t* zh);
 
 void zk_register_server(zhandle_t* zh, const char* server_port);
 
-void zk_print_nodes(zoo_string* children_list);
-
 void zk_get_children(zhandle_t* zh, void* watcher_ctx);
 
 void zk_child_watcher(zhandle_t* zh, int type, int state, const char* zpath, void* watcher_ctx);
-
-void get_ip_address(char* ip_address);
 
 int get_local_ip(char* ip_str, size_t buflen);
 
