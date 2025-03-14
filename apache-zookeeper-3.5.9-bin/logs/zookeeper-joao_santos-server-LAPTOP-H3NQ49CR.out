@@ -91,3 +91,17 @@
 2025-03-14 01:03:33,106 [myid:] - WARN  [NIOWorkerThread-28:ZooKeeperServer@1028] - Connection request from old client /127.0.0.1:57220; will be dropped if server is in r-o mode
 2025-03-14 01:03:35,707 [myid:] - WARN  [NIOWorkerThread-3:ZooKeeperServer@1028] - Connection request from old client /127.0.0.1:57232; will be dropped if server is in r-o mode
 2025-03-14 01:03:46,815 [myid:] - WARN  [NIOWorkerThread-23:NIOServerCnxn@366] - Unable to read additional data from client sessionid 0x1000031ace30001, likely client has closed socket
+2025-03-14 01:03:58,328 [myid:] - WARN  [NIOWorkerThread-19:NIOServerCnxn@366] - Unable to read additional data from client sessionid 0x1000031ace30003, likely client has closed socket
+2025-03-14 01:04:00,018 [myid:] - WARN  [NIOWorkerThread-38:NIOServerCnxn@366] - Unable to read additional data from client sessionid 0x1000031ace30000, likely client has closed socket
+2025-03-14 01:04:02,520 [myid:] - WARN  [NIOWorkerThread-6:ZooKeeperServer@1028] - Connection request from old client /127.0.0.1:50864; will be dropped if server is in r-o mode
+2025-03-14 01:04:06,043 [myid:] - WARN  [NIOWorkerThread-23:NIOServerCnxn@366] - Unable to read additional data from client sessionid 0x1000031ace30002, likely client has closed socket
+2025-03-14 01:04:06,043 [myid:] - WARN  [NIOWorkerThread-24:NIOServerCnxn@366] - Unable to read additional data from client sessionid 0x1000031ace30004, likely client has closed socket
+2025-03-14 01:04:07,377 [myid:] - WARN  [NIOWorkerThread-28:ZooKeeperServer@1028] - Connection request from old client /127.0.0.1:50868; will be dropped if server is in r-o mode
+2025-03-14 01:04:07,377 [myid:] - WARN  [NIOWorkerThread-25:ZooKeeperServer@1028] - Connection request from old client /127.0.0.1:50876; will be dropped if server is in r-o mode
+2025-03-14 01:04:10,848 [myid:] - WARN  [NIOWorkerThread-1:ZooKeeperServer@1028] - Connection request from old client /127.0.0.1:50892; will be dropped if server is in r-o mode
+2025-03-14 01:04:18,106 [myid:] - WARN  [NIOWorkerThread-16:NIOServerCnxn@366] - Unable to read additional data from client sessionid 0x1000031ace30005, likely client has closed socket
+2025-03-14 01:04:19,046 [myid:] - WARN  [NIOWorkerThread-20:NIOServerCnxn@366] - Unable to read additional data from client sessionid 0x1000031ace30004, likely client has closed socket
+2025-03-14 01:04:19,950 [myid:] - WARN  [NIOWorkerThread-18:NIOServerCnxn@366] - Unable to read additional data from client sessionid 0x1000031ace30002, likely client has closed socket
+2025-03-14 01:04:23,526 [myid:] - INFO  [SessionTracker:ZooKeeperServer@413] - Expiring session 0x1000031ace30004, timeout of 4000ms exceeded
+2025-03-14 01:04:23,526 [myid:] - INFO  [SessionTracker:ZooKeeperServer@413] - Expiring session 0x1000031ace30002, timeout of 4000ms exceeded
+2025-03-14 01:04:23,527 [myid:] - INFO  [SessionTracker:ZooKeeperServer@413] - Expiring session 0x1000031ace30005, timeout of 4000ms exceeded
